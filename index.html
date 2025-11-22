@@ -1,0 +1,1138 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#1e3a8a">
+    <title>Foloneo - Générateur de Devis</title>
+    <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect fill='%231e3a8a' width='100' height='100'/><text y='75' font-size='80' fill='white' font-family='Arial'>F</text></svg>">
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+        
+        * {
+            -webkit-tap-highlight-color: transparent;
+        }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            -webkit-font-smoothing: antialiased;
+            overscroll-behavior: none;
+        }
+        
+        .gradient-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        
+        .foloneo-gradient {
+            background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
+        }
+
+        input, select, textarea, button {
+            font-size: 16px; /* Évite le zoom auto sur iOS */
+        }
+
+        .mobile-optimized {
+            touch-action: manipulation;
+        }
+
+        @media (max-width: 768px) {
+            .hide-mobile {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+
+        // Données produits Ajax System
+        const AJAX_PRODUCTS = [
+            { id: 'ajax-hub2', category: 'Centrales', name: 'Hub 2 (2G)', description: 'Centrale alarme 2G', price: 199, brand: 'Ajax' },
+            { id: 'ajax-hub2-plus', category: 'Centrales', name: 'Hub 2 Plus', description: 'Centrale avec caméra', price: 349, brand: 'Ajax' },
+            { id: 'ajax-hub-hybrid', category: 'Centrales', name: 'Hub Hybrid', description: 'Centrale hybride', price: 299, brand: 'Ajax' },
+            { id: 'ajax-motionprotect', category: 'Détecteurs', name: 'MotionProtect', description: 'Détecteur mouvement', price: 69, brand: 'Ajax' },
+            { id: 'ajax-motionprotect-plus', category: 'Détecteurs', name: 'MotionProtect Plus', description: 'Immunité animaux', price: 89, brand: 'Ajax' },
+            { id: 'ajax-motionprotect-curtain', category: 'Détecteurs', name: 'MotionProtect Curtain', description: 'Détecteur rideau', price: 99, brand: 'Ajax' },
+            { id: 'ajax-motionprotect-outdoor', category: 'Détecteurs', name: 'MotionProtect Outdoor', description: 'Détecteur extérieur', price: 159, brand: 'Ajax' },
+            { id: 'ajax-motioncam', category: 'Détecteurs', name: 'MotionCam', description: 'Détecteur avec photo', price: 149, brand: 'Ajax' },
+            { id: 'ajax-motioncam-outdoor', category: 'Détecteurs', name: 'MotionCam Outdoor', description: 'Extérieur avec photo', price: 249, brand: 'Ajax' },
+            { id: 'ajax-doorprotect', category: 'Détecteurs', name: 'DoorProtect', description: 'Contact ouverture', price: 39, brand: 'Ajax' },
+            { id: 'ajax-doorprotect-plus', category: 'Détecteurs', name: 'DoorProtect Plus', description: 'Contact + choc', price: 59, brand: 'Ajax' },
+            { id: 'ajax-glassprotect', category: 'Détecteurs', name: 'GlassProtect', description: 'Bris de vitre', price: 89, brand: 'Ajax' },
+            { id: 'ajax-fireprotect', category: 'Détecteurs', name: 'FireProtect', description: 'Détecteur fumée', price: 79, brand: 'Ajax' },
+            { id: 'ajax-fireprotect-plus', category: 'Détecteurs', name: 'FireProtect Plus', description: 'Fumée + CO + chaleur', price: 119, brand: 'Ajax' },
+            { id: 'ajax-leaksprotect', category: 'Détecteurs', name: 'LeaksProtect', description: 'Détecteur inondation', price: 59, brand: 'Ajax' },
+            { id: 'ajax-spacecontrol', category: 'Commandes', name: 'SpaceControl', description: 'Télécommande', price: 29, brand: 'Ajax' },
+            { id: 'ajax-keypad', category: 'Commandes', name: 'KeyPad', description: 'Clavier à code', price: 99, brand: 'Ajax' },
+            { id: 'ajax-keypad-plus', category: 'Commandes', name: 'KeyPad Plus', description: 'Clavier + badge', price: 149, brand: 'Ajax' },
+            { id: 'ajax-tag', category: 'Commandes', name: 'Tag', description: 'Badge proximité', price: 9, brand: 'Ajax' },
+            { id: 'ajax-pass', category: 'Commandes', name: 'Pass', description: 'Badge KeyPad Plus', price: 9, brand: 'Ajax' },
+            { id: 'ajax-homesiren', category: 'Sirènes', name: 'HomeSiren', description: 'Sirène intérieure', price: 89, brand: 'Ajax' },
+            { id: 'ajax-streetsiren', category: 'Sirènes', name: 'StreetSiren', description: 'Sirène extérieure', price: 139, brand: 'Ajax' },
+            { id: 'ajax-streetsiren-dd', category: 'Sirènes', name: 'StreetSiren DD', description: 'Sirène + flash', price: 179, brand: 'Ajax' },
+            { id: 'ajax-relay', category: 'Automatisation', name: 'Relay', description: 'Module commutation', price: 69, brand: 'Ajax' },
+            { id: 'ajax-wallswitch', category: 'Automatisation', name: 'WallSwitch', description: 'Interrupteur connecté', price: 79, brand: 'Ajax' },
+            { id: 'ajax-socket', category: 'Automatisation', name: 'Socket', description: 'Prise connectée', price: 59, brand: 'Ajax' },
+        ];
+
+        const DAHUA_PRODUCTS = [
+            { id: 'dahua-nvr4108', category: 'Enregistreurs', name: 'NVR 8CH 4K PoE', description: 'NVR 8 canaux', price: 249, brand: 'Dahua' },
+            { id: 'dahua-nvr4116', category: 'Enregistreurs', name: 'NVR 16CH 4K PoE', description: 'NVR 16 canaux', price: 349, brand: 'Dahua' },
+            { id: 'dahua-nvr4216', category: 'Enregistreurs', name: 'NVR 16CH 16PoE', description: 'NVR 16 ports PoE', price: 449, brand: 'Dahua' },
+            { id: 'dahua-nvr4232', category: 'Enregistreurs', name: 'NVR 32CH 16PoE', description: 'NVR 32 canaux', price: 649, brand: 'Dahua' },
+            { id: 'dahua-cam-bullet-4mp', category: 'Caméras', name: 'Bullet 4MP', description: 'Bullet IR 40m', price: 119, brand: 'Dahua' },
+            { id: 'dahua-cam-bullet-8mp', category: 'Caméras', name: 'Bullet 4K', description: 'Bullet 4K IR 40m', price: 159, brand: 'Dahua' },
+            { id: 'dahua-cam-dome-4mp', category: 'Caméras', name: 'Dôme 4MP', description: 'Dôme IR 30m + micro', price: 129, brand: 'Dahua' },
+            { id: 'dahua-cam-dome-8mp', category: 'Caméras', name: 'Dôme 4K', description: 'Dôme 4K IR 30m', price: 169, brand: 'Dahua' },
+            { id: 'dahua-cam-turret-4mp', category: 'Caméras', name: 'Tourelle 4MP', description: 'Tourelle varifocale', price: 149, brand: 'Dahua' },
+            { id: 'dahua-cam-turret-8mp', category: 'Caméras', name: 'Tourelle 4K', description: 'Tourelle 4K', price: 189, brand: 'Dahua' },
+            { id: 'dahua-cam-ptz', category: 'Caméras', name: 'PTZ 4MP x4', description: 'PTZ zoom x4', price: 329, brand: 'Dahua' },
+            { id: 'dahua-cam-fisheye', category: 'Caméras', name: 'Fisheye 12MP', description: 'Fisheye 360°', price: 399, brand: 'Dahua' },
+            { id: 'dahua-hdd-1tb', category: 'Accessoires', name: 'HDD 1To', description: 'Disque surveillance', price: 59, brand: 'Dahua' },
+            { id: 'dahua-hdd-2tb', category: 'Accessoires', name: 'HDD 2To', description: 'Disque surveillance', price: 89, brand: 'Dahua' },
+            { id: 'dahua-hdd-4tb', category: 'Accessoires', name: 'HDD 4To', description: 'Disque surveillance', price: 139, brand: 'Dahua' },
+            { id: 'dahua-hdd-6tb', category: 'Accessoires', name: 'HDD 6To', description: 'Disque surveillance', price: 189, brand: 'Dahua' },
+            { id: 'dahua-switch-poe-8', category: 'Accessoires', name: 'Switch PoE 8P', description: 'Switch 8 ports 120W', price: 129, brand: 'Dahua' },
+            { id: 'dahua-switch-poe-16', category: 'Accessoires', name: 'Switch PoE 16P', description: 'Switch 16 ports 250W', price: 249, brand: 'Dahua' },
+            { id: 'dahua-cable-50m', category: 'Accessoires', name: 'Câble 50m', description: 'Cat6 FTP extérieur', price: 39, brand: 'Dahua' },
+            { id: 'dahua-cable-100m', category: 'Accessoires', name: 'Câble 100m', description: 'Cat6 FTP extérieur', price: 69, brand: 'Dahua' },
+        ];
+
+        function App() {
+            const [isAuthenticated, setIsAuthenticated] = useState(false);
+            const [currentUser, setCurrentUser] = useState('');
+            const [currentView, setCurrentView] = useState('dashboard');
+            const [products, setProducts] = useState([]);
+            const [quotes, setQuotes] = useState([]);
+            const [currentQuote, setCurrentQuote] = useState(null);
+            const [showMobileMenu, setShowMobileMenu] = useState(false);
+
+            useEffect(() => {
+                const savedProducts = localStorage.getItem('foloneo_products');
+                if (savedProducts) {
+                    setProducts(JSON.parse(savedProducts));
+                } else {
+                    const allProducts = [...AJAX_PRODUCTS, ...DAHUA_PRODUCTS];
+                    setProducts(allProducts);
+                    localStorage.setItem('foloneo_products', JSON.stringify(allProducts));
+                }
+
+                const savedQuotes = localStorage.getItem('foloneo_quotes');
+                if (savedQuotes) {
+                    setQuotes(JSON.parse(savedQuotes));
+                }
+            }, []);
+
+            useEffect(() => {
+                if (products.length > 0) {
+                    localStorage.setItem('foloneo_products', JSON.stringify(products));
+                }
+            }, [products]);
+
+            useEffect(() => {
+                localStorage.setItem('foloneo_quotes', JSON.stringify(quotes));
+            }, [quotes]);
+
+            const handleLogin = (username) => {
+                setIsAuthenticated(true);
+                setCurrentUser(username);
+            };
+
+            const handleLogout = () => {
+                setIsAuthenticated(false);
+                setCurrentUser('');
+                setCurrentView('dashboard');
+            };
+
+            if (!isAuthenticated) {
+                return <LoginScreen onLogin={handleLogin} />;
+            }
+
+            return (
+                <div className="min-h-screen bg-gray-50">
+                    <Navigation 
+                        currentView={currentView} 
+                        setCurrentView={setCurrentView}
+                        currentUser={currentUser}
+                        onLogout={handleLogout}
+                        showMobileMenu={showMobileMenu}
+                        setShowMobileMenu={setShowMobileMenu}
+                        setCurrentQuote={setCurrentQuote}
+                    />
+                    
+                    <div className="max-w-7xl mx-auto px-4 py-6 pb-24">
+                        {currentView === 'dashboard' && (
+                            <Dashboard 
+                                quotes={quotes} 
+                                setQuotes={setQuotes}
+                                setCurrentView={setCurrentView}
+                                setCurrentQuote={setCurrentQuote}
+                            />
+                        )}
+                        {currentView === 'new-quote' && (
+                            <QuoteCreator 
+                                products={products}
+                                quotes={quotes}
+                                setQuotes={setQuotes}
+                                currentQuote={currentQuote}
+                                setCurrentQuote={setCurrentQuote}
+                                setCurrentView={setCurrentView}
+                                currentUser={currentUser}
+                            />
+                        )}
+                        {currentView === 'products' && (
+                            <ProductManager 
+                                products={products}
+                                setProducts={setProducts}
+                            />
+                        )}
+                    </div>
+
+                    {/* Menu mobile bottom */}
+                    <MobileBottomNav 
+                        currentView={currentView}
+                        setCurrentView={setCurrentView}
+                        setCurrentQuote={setCurrentQuote}
+                    />
+                </div>
+            );
+        }
+
+        function LoginScreen({ onLogin }) {
+            const [username, setUsername] = useState('');
+            const [password, setPassword] = useState('');
+            const [error, setError] = useState('');
+
+            const handleLogin = (e) => {
+                e.preventDefault();
+                const users = JSON.parse(localStorage.getItem('foloneo_users') || '{}');
+                
+                if (users[username] && users[username] === password) {
+                    onLogin(username);
+                    setError('');
+                } else if (username === 'admin' && password === 'admin') {
+                    onLogin('admin');
+                    setError('');
+                } else {
+                    setError('Identifiant ou mot de passe incorrect');
+                }
+            };
+
+            return (
+                <div className="min-h-screen flex items-center justify-center gradient-bg p-4">
+                    <div className="bg-white rounded-2xl shadow-2xl p-6 sm:p-8 w-full max-w-md">
+                        <div className="text-center mb-8">
+                            <div className="inline-block p-4 bg-blue-100 rounded-full mb-4">
+                                <svg className="w-12 h-12 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+                                    <path d="M10 2a5 5 0 00-5 5v2a2 2 0 00-2 2v5a2 2 0 002 2h10a2 2 0 002-2v-5a2 2 0 00-2-2H7V7a3 3 0 015.905-.75 1 1 0 001.937-.5A5.002 5.002 0 0010 2z" />
+                                </svg>
+                            </div>
+                            <h1 className="text-3xl font-bold text-gray-800 mb-2">Foloneo</h1>
+                            <p className="text-gray-600">Générateur de Devis</p>
+                        </div>
+
+                        <form onSubmit={handleLogin} className="space-y-6">
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    Identifiant
+                                </label>
+                                <input
+                                    type="text"
+                                    value={username}
+                                    onChange={(e) => setUsername(e.target.value)}
+                                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+                                    placeholder="Votre identifiant"
+                                    required
+                                    autoComplete="username"
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    Mot de passe
+                                </label>
+                                <input
+                                    type="password"
+                                    value={password}
+                                    onChange={(e) => setPassword(e.target.value)}
+                                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+                                    placeholder="Votre mot de passe"
+                                    required
+                                    autoComplete="current-password"
+                                />
+                            </div>
+
+                            {error && (
+                                <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
+                                    {error}
+                                </div>
+                            )}
+
+                            <button
+                                type="submit"
+                                className="w-full bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition duration-200 mobile-optimized"
+                            >
+                                Se connecter
+                            </button>
+                        </form>
+
+                        <div className="mt-6 text-center text-sm text-gray-600">
+                            <p>Compte par défaut: admin / admin</p>
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+
+        function Navigation({ currentView, setCurrentView, currentUser, onLogout, showMobileMenu, setShowMobileMenu, setCurrentQuote }) {
+            return (
+                <nav className="foloneo-gradient shadow-lg sticky top-0 z-50">
+                    <div className="max-w-7xl mx-auto px-4">
+                        <div className="flex justify-between items-center h-16">
+                            <div className="flex items-center space-x-3">
+                                <svg className="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                    <path d="M10 2a5 5 0 00-5 5v2a2 2 0 00-2 2v5a2 2 0 002 2h10a2 2 0 002-2v-5a2 2 0 00-2-2H7V7a3 3 0 015.905-.75 1 1 0 001.937-.5A5.002 5.002 0 0010 2z" />
+                                </svg>
+                                <span className="text-white font-bold text-lg sm:text-xl">Foloneo</span>
+                            </div>
+
+                            <div className="flex items-center space-x-2 sm:space-x-4">
+                                <span className="text-white text-xs sm:text-sm">👤 {currentUser}</span>
+                                <button
+                                    onClick={onLogout}
+                                    className="bg-white bg-opacity-20 hover:bg-opacity-30 text-white px-3 py-2 rounded-lg transition text-sm"
+                                >
+                                    Déconnexion
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </nav>
+            );
+        }
+
+        function MobileBottomNav({ currentView, setCurrentView, setCurrentQuote }) {
+            return (
+                <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-lg z-50">
+                    <div className="grid grid-cols-3 gap-1 p-2">
+                        <button
+                            onClick={() => setCurrentView('dashboard')}
+                            className={`flex flex-col items-center justify-center py-3 rounded-lg transition ${
+                                currentView === 'dashboard' ? 'bg-blue-50 text-blue-600' : 'text-gray-600'
+                            }`}
+                        >
+                            <svg className="w-6 h-6 mb-1" fill="currentColor" viewBox="0 0 20 20">
+                                <path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z" />
+                            </svg>
+                            <span className="text-xs font-medium">Accueil</span>
+                        </button>
+                        
+                        <button
+                            onClick={() => {
+                                setCurrentQuote(null);
+                                setCurrentView('new-quote');
+                            }}
+                            className={`flex flex-col items-center justify-center py-3 rounded-lg transition ${
+                                currentView === 'new-quote' ? 'bg-blue-50 text-blue-600' : 'text-gray-600'
+                            }`}
+                        >
+                            <svg className="w-6 h-6 mb-1" fill="currentColor" viewBox="0 0 20 20">
+                                <path fillRule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clipRule="evenodd" />
+                            </svg>
+                            <span className="text-xs font-medium">Devis</span>
+                        </button>
+                        
+                        <button
+                            onClick={() => setCurrentView('products')}
+                            className={`flex flex-col items-center justify-center py-3 rounded-lg transition ${
+                                currentView === 'products' ? 'bg-blue-50 text-blue-600' : 'text-gray-600'
+                            }`}
+                        >
+                            <svg className="w-6 h-6 mb-1" fill="currentColor" viewBox="0 0 20 20">
+                                <path d="M7 3a1 1 0 000 2h6a1 1 0 100-2H7zM4 7a1 1 0 011-1h10a1 1 0 110 2H5a1 1 0 01-1-1zM2 11a2 2 0 012-2h12a2 2 0 012 2v4a2 2 0 01-2 2H4a2 2 0 01-2-2v-4z" />
+                            </svg>
+                            <span className="text-xs font-medium">Produits</span>
+                        </button>
+                    </div>
+                </div>
+            );
+        }
+
+        function Dashboard({ quotes, setQuotes, setCurrentView, setCurrentQuote }) {
+            const totalQuotes = quotes.length;
+            const totalAmount = quotes.reduce((sum, q) => sum + (q.total || 0), 0);
+            const recentQuotes = [...quotes].reverse().slice(0, 10);
+
+            const deleteQuote = (id) => {
+                if (confirm('Supprimer ce devis ?')) {
+                    setQuotes(quotes.filter(q => q.id !== id));
+                }
+            };
+
+            return (
+                <div className="space-y-6">
+                    <div className="flex justify-between items-center">
+                        <h1 className="text-2xl sm:text-3xl font-bold text-gray-800">Tableau de bord</h1>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                        <div className="bg-white rounded-xl shadow-md p-4 sm:p-6">
+                            <div className="flex items-center justify-between">
+                                <div>
+                                    <p className="text-gray-600 text-xs sm:text-sm mb-1">Devis créés</p>
+                                    <p className="text-xl sm:text-2xl font-bold text-gray-800">{totalQuotes}</p>
+                                </div>
+                                <div className="bg-blue-500 p-3 rounded-full">
+                                    <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                        <path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z" />
+                                        <path fillRule="evenodd" d="M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm3 4a1 1 0 000 2h.01a1 1 0 100-2H7zm3 0a1 1 0 000 2h3a1 1 0 100-2h-3zm-3 4a1 1 0 100 2h.01a1 1 0 100-2H7zm3 0a1 1 0 100 2h3a1 1 0 100-2h-3z" clipRule="evenodd" />
+                                    </svg>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="bg-white rounded-xl shadow-md p-4 sm:p-6">
+                            <div className="flex items-center justify-between">
+                                <div>
+                                    <p className="text-gray-600 text-xs sm:text-sm mb-1">Montant total</p>
+                                    <p className="text-xl sm:text-2xl font-bold text-gray-800">{totalAmount.toFixed(0)} €</p>
+                                </div>
+                                <div className="bg-green-500 p-3 rounded-full">
+                                    <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                        <path d="M8.433 7.418c.155-.103.346-.196.567-.267v1.698a2.305 2.305 0 01-.567-.267C8.07 8.34 8 8.114 8 8c0-.114.07-.34.433-.582zM11 12.849v-1.698c.22.071.412.164.567.267.364.243.433.468.433.582 0 .114-.07.34-.433.582a2.305 2.305 0 01-.567.267z" />
+                                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-13a1 1 0 10-2 0v.092a4.535 4.535 0 00-1.676.662C6.602 6.234 6 7.009 6 8c0 .99.602 1.765 1.324 2.246.48.32 1.054.545 1.676.662v1.941c-.391-.127-.68-.317-.843-.504a1 1 0 10-1.51 1.31c.562.649 1.413 1.076 2.353 1.253V15a1 1 0 102 0v-.092a4.535 4.535 0 001.676-.662C13.398 13.766 14 12.991 14 12c0-.99-.602-1.765-1.324-2.246A4.535 4.535 0 0011 9.092V7.151c.391.127.68.317.843.504a1 1 0 101.511-1.31c-.563-.649-1.413-1.076-2.354-1.253V5z" clipRule="evenodd" />
+                                    </svg>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="bg-white rounded-xl shadow-md p-4 sm:p-6">
+                            <div className="flex items-center justify-between">
+                                <div>
+                                    <p className="text-gray-600 text-xs sm:text-sm mb-1">Devis moyen</p>
+                                    <p className="text-xl sm:text-2xl font-bold text-gray-800">
+                                        {totalQuotes > 0 ? (totalAmount / totalQuotes).toFixed(0) : '0'} €
+                                    </p>
+                                </div>
+                                <div className="bg-purple-500 p-3 rounded-full">
+                                    <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                        <path d="M2 11a1 1 0 011-1h2a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1v-5zM8 7a1 1 0 011-1h2a1 1 0 011 1v9a1 1 0 01-1 1H9a1 1 0 01-1-1V7zM14 4a1 1 0 011-1h2a1 1 0 011 1v12a1 1 0 01-1 1h-2a1 1 0 01-1-1V4z" />
+                                    </svg>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="bg-white rounded-xl shadow-md p-4 sm:p-6">
+                        <h2 className="text-lg sm:text-xl font-bold text-gray-800 mb-4">Devis récents</h2>
+                        {recentQuotes.length === 0 ? (
+                            <div className="text-center py-12">
+                                <svg className="w-16 h-16 mx-auto text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                </svg>
+                                <p className="text-gray-500 mb-4">Aucun devis créé</p>
+                                <button
+                                    onClick={() => {
+                                        setCurrentQuote(null);
+                                        setCurrentView('new-quote');
+                                    }}
+                                    className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition"
+                                >
+                                    Créer mon premier devis
+                                </button>
+                            </div>
+                        ) : (
+                            <div className="space-y-3">
+                                {recentQuotes.map((quote) => (
+                                    <div key={quote.id} className="flex items-center justify-between p-3 sm:p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition mobile-optimized">
+                                        <div className="flex-1 min-w-0">
+                                            <h3 className="font-semibold text-gray-800 truncate text-sm sm:text-base">{quote.clientName}</h3>
+                                            <p className="text-xs sm:text-sm text-gray-600">
+                                                {new Date(quote.date).toLocaleDateString('fr-FR')} • {quote.items.length} produit(s)
+                                            </p>
+                                        </div>
+                                        <div className="flex items-center space-x-2 sm:space-x-3 ml-2">
+                                            <span className="text-base sm:text-lg font-bold text-blue-600 whitespace-nowrap">{quote.total.toFixed(0)} €</span>
+                                            <button
+                                                onClick={() => {
+                                                    setCurrentQuote(quote);
+                                                    setCurrentView('new-quote');
+                                                }}
+                                                className="text-blue-600 hover:text-blue-800 p-2"
+                                            >
+                                                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                                    <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
+                                                </svg>
+                                            </button>
+                                            <button
+                                                onClick={() => deleteQuote(quote.id)}
+                                                className="text-red-600 hover:text-red-800 p-2"
+                                            >
+                                                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                                    <path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" />
+                                                </svg>
+                                            </button>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+                    </div>
+                </div>
+            );
+        }
+
+        // Le reste du code (QuoteCreator et ProductManager) sera dans le prochain message
+        // Pour des raisons de taille, je vais créer un fichier séparé
+
+        function QuoteCreator({ products, quotes, setQuotes, currentQuote, setCurrentQuote, setCurrentView, currentUser }) {
+            const [clientName, setClientName] = useState('');
+            const [clientAddress, setClientAddress] = useState('');
+            const [clientPhone, setClientPhone] = useState('');
+            const [clientEmail, setClientEmail] = useState('');
+            const [selectedItems, setSelectedItems] = useState([]);
+            const [searchTerm, setSearchTerm] = useState('');
+            const [selectedBrand, setSelectedBrand] = useState('all');
+            const [selectedCategory, setSelectedCategory] = useState('all');
+            const [discount, setDiscount] = useState(0);
+            const [notes, setNotes] = useState('');
+            const [showClientForm, setShowClientForm] = useState(true);
+
+            useEffect(() => {
+                if (currentQuote) {
+                    setClientName(currentQuote.clientName || '');
+                    setClientAddress(currentQuote.clientAddress || '');
+                    setClientPhone(currentQuote.clientPhone || '');
+                    setClientEmail(currentQuote.clientEmail || '');
+                    setSelectedItems(currentQuote.items || []);
+                    setDiscount(currentQuote.discount || 0);
+                    setNotes(currentQuote.notes || '');
+                } else {
+                    setClientName('');
+                    setClientAddress('');
+                    setClientPhone('');
+                    setClientEmail('');
+                    setSelectedItems([]);
+                    setDiscount(0);
+                    setNotes('');
+                }
+            }, [currentQuote]);
+
+            const categories = ['all', ...new Set(products.map(p => p.category))];
+
+            const filteredProducts = products.filter(product => {
+                const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase());
+                const matchesBrand = selectedBrand === 'all' || product.brand === selectedBrand;
+                const matchesCategory = selectedCategory === 'all' || product.category === selectedCategory;
+                return matchesSearch && matchesBrand && matchesCategory;
+            });
+
+            const addItem = (product) => {
+                const existingItem = selectedItems.find(item => item.id === product.id);
+                if (existingItem) {
+                    setSelectedItems(selectedItems.map(item =>
+                        item.id === product.id ? { ...item, quantity: item.quantity + 1 } : item
+                    ));
+                } else {
+                    setSelectedItems([...selectedItems, { ...product, quantity: 1 }]);
+                }
+            };
+
+            const updateQuantity = (id, quantity) => {
+                if (quantity <= 0) {
+                    setSelectedItems(selectedItems.filter(item => item.id !== id));
+                } else {
+                    setSelectedItems(selectedItems.map(item =>
+                        item.id === id ? { ...item, quantity } : item
+                    ));
+                }
+            };
+
+            const updatePrice = (id, price) => {
+                setSelectedItems(selectedItems.map(item =>
+                    item.id === id ? { ...item, price: parseFloat(price) || 0 } : item
+                ));
+            };
+
+            const removeItem = (id) => {
+                setSelectedItems(selectedItems.filter(item => item.id !== id));
+            };
+
+            const subtotal = selectedItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+            const discountAmount = subtotal * (discount / 100);
+            const total = subtotal - discountAmount;
+
+            const saveQuote = () => {
+                if (!clientName) {
+                    alert('Veuillez saisir le nom du client');
+                    return;
+                }
+                if (selectedItems.length === 0) {
+                    alert('Veuillez ajouter au moins un produit');
+                    return;
+                }
+
+                const quote = {
+                    id: currentQuote?.id || Date.now(),
+                    date: currentQuote?.date || new Date().toISOString(),
+                    clientName,
+                    clientAddress,
+                    clientPhone,
+                    clientEmail,
+                    items: selectedItems,
+                    subtotal,
+                    discount,
+                    discountAmount,
+                    total,
+                    notes,
+                    createdBy: currentUser
+                };
+
+                if (currentQuote) {
+                    setQuotes(quotes.map(q => q.id === currentQuote.id ? quote : q));
+                } else {
+                    setQuotes([...quotes, quote]);
+                }
+
+                alert('✅ Devis enregistré !');
+                setCurrentQuote(null);
+                setCurrentView('dashboard');
+            };
+
+            const generatePDF = () => {
+                if (!clientName || selectedItems.length === 0) {
+                    alert('Veuillez remplir les informations et ajouter des produits');
+                    return;
+                }
+
+                const { jsPDF } = window.jspdf;
+                const doc = new jsPDF();
+
+                doc.setFillColor(30, 58, 138);
+                doc.rect(0, 0, 210, 40, 'F');
+                
+                doc.setTextColor(255, 255, 255);
+                doc.setFontSize(24);
+                doc.text('FOLONEO', 20, 20);
+                
+                doc.setFontSize(10);
+                doc.text('Solutions de Sécurité Électronique', 20, 28);
+                doc.text('1267 Av. J-L Ortolan - 83100 TOULON', 20, 34);
+
+                doc.setTextColor(0, 0, 0);
+                doc.setFontSize(18);
+                doc.text('DEVIS', 20, 55);
+                
+                doc.setFontSize(10);
+                doc.text(`N° ${currentQuote?.id || Date.now()}`, 20, 62);
+                doc.text(`Date: ${new Date().toLocaleDateString('fr-FR')}`, 20, 68);
+
+                doc.setFontSize(12);
+                doc.text('CLIENT', 120, 55);
+                
+                doc.setFontSize(10);
+                let yPos = 62;
+                doc.text(clientName, 120, yPos);
+                if (clientAddress) {
+                    yPos += 6;
+                    const addr = doc.splitTextToSize(clientAddress, 70);
+                    doc.text(addr, 120, yPos);
+                    yPos += (addr.length * 5);
+                }
+                if (clientPhone) {
+                    yPos += 6;
+                    doc.text(`Tél: ${clientPhone}`, 120, yPos);
+                }
+
+                doc.setDrawColor(59, 130, 246);
+                doc.line(20, 85, 190, 85);
+
+                let currentY = 95;
+                doc.setFillColor(30, 58, 138);
+                doc.rect(20, currentY, 170, 8, 'F');
+                
+                doc.setTextColor(255, 255, 255);
+                doc.setFontSize(9);
+                doc.text('Produit', 22, currentY + 5.5);
+                doc.text('Qté', 130, currentY + 5.5);
+                doc.text('Prix U.', 150, currentY + 5.5);
+                doc.text('Total', 175, currentY + 5.5);
+
+                currentY += 10;
+                doc.setTextColor(0, 0, 0);
+                
+                selectedItems.forEach((item, index) => {
+                    if (currentY > 270) {
+                        doc.addPage();
+                        currentY = 20;
+                    }
+
+                    if (index % 2 === 0) {
+                        doc.setFillColor(249, 250, 251);
+                        doc.rect(20, currentY - 4, 170, 10, 'F');
+                    }
+
+                    const name = doc.splitTextToSize(item.name, 100);
+                    doc.text(name, 22, currentY);
+                    doc.text(item.quantity.toString(), 135, currentY, { align: 'right' });
+                    doc.text(`${item.price.toFixed(2)} €`, 165, currentY, { align: 'right' });
+                    doc.text(`${(item.price * item.quantity).toFixed(2)} €`, 188, currentY, { align: 'right' });
+
+                    currentY += Math.max(10, name.length * 4);
+                });
+
+                currentY += 10;
+                doc.line(130, currentY, 190, currentY);
+                
+                currentY += 7;
+                doc.text('Sous-total:', 130, currentY);
+                doc.text(`${subtotal.toFixed(2)} €`, 188, currentY, { align: 'right' });
+
+                if (discount > 0) {
+                    currentY += 6;
+                    doc.text(`Remise (${discount}%):`, 130, currentY);
+                    doc.setTextColor(220, 38, 38);
+                    doc.text(`-${discountAmount.toFixed(2)} €`, 188, currentY, { align: 'right' });
+                    doc.setTextColor(0, 0, 0);
+                }
+
+                currentY += 8;
+                doc.setLineWidth(0.5);
+                doc.line(130, currentY, 190, currentY);
+
+                currentY += 7;
+                doc.setFontSize(12);
+                doc.setTextColor(59, 130, 246);
+                doc.text('Total TTC:', 130, currentY);
+                doc.text(`${total.toFixed(2)} €`, 188, currentY, { align: 'right' });
+
+                if (notes) {
+                    currentY += 15;
+                    doc.setTextColor(0, 0, 0);
+                    doc.setFontSize(10);
+                    doc.text('Notes:', 20, currentY);
+                    currentY += 6;
+                    const noteLines = doc.splitTextToSize(notes, 170);
+                    doc.text(noteLines, 20, currentY);
+                }
+
+                doc.save(`Devis_${clientName.replace(/\s+/g, '_')}.pdf`);
+            };
+
+            return (
+                <div className="space-y-4">
+                    <div className="flex justify-between items-center">
+                        <div>
+                            <button
+                                onClick={() => {
+                                    setCurrentQuote(null);
+                                    setCurrentView('dashboard');
+                                }}
+                                className="text-blue-600 hover:text-blue-800 mb-2 text-sm"
+                            >
+                                ← Retour
+                            </button>
+                            <h1 className="text-2xl font-bold text-gray-800">
+                                {currentQuote ? 'Modifier' : 'Nouveau devis'}
+                            </h1>
+                        </div>
+                    </div>
+
+                    {/* Formulaire client */}
+                    <div className="bg-white rounded-xl shadow-md p-4">
+                        <button
+                            onClick={() => setShowClientForm(!showClientForm)}
+                            className="w-full flex justify-between items-center mb-4"
+                        >
+                            <h2 className="text-lg font-bold text-gray-800">Client</h2>
+                            <svg 
+                                className={`w-5 h-5 transition-transform ${showClientForm ? 'rotate-180' : ''}`}
+                                fill="currentColor" 
+                                viewBox="0 0 20 20"
+                            >
+                                <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
+                            </svg>
+                        </button>
+                        
+                        {showClientForm && (
+                            <div className="space-y-3">
+                                <input
+                                    type="text"
+                                    value={clientName}
+                                    onChange={(e) => setClientName(e.target.value)}
+                                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                                    placeholder="Nom du client *"
+                                />
+                                <textarea
+                                    value={clientAddress}
+                                    onChange={(e) => setClientAddress(e.target.value)}
+                                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                                    rows="2"
+                                    placeholder="Adresse"
+                                />
+                                <input
+                                    type="tel"
+                                    value={clientPhone}
+                                    onChange={(e) => setClientPhone(e.target.value)}
+                                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                                    placeholder="Téléphone"
+                                />
+                                <input
+                                    type="email"
+                                    value={clientEmail}
+                                    onChange={(e) => setClientEmail(e.target.value)}
+                                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                                    placeholder="Email"
+                                />
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Produits sélectionnés */}
+                    {selectedItems.length > 0 && (
+                        <div className="bg-white rounded-xl shadow-md p-4">
+                            <div className="flex justify-between items-center mb-4">
+                                <h2 className="text-lg font-bold text-gray-800">
+                                    Panier ({selectedItems.length})
+                                </h2>
+                            </div>
+                            
+                            <div className="space-y-2">
+                                {selectedItems.map((item) => (
+                                    <div key={item.id} className="flex items-center gap-2 p-3 border rounded-lg">
+                                        <div className="flex-1 min-w-0">
+                                            <h3 className="font-semibold text-sm truncate">{item.name}</h3>
+                                            <p className="text-xs text-gray-600">{item.description}</p>
+                                        </div>
+                                        <div className="flex items-center gap-2">
+                                            <div className="flex items-center">
+                                                <button
+                                                    onClick={() => updateQuantity(item.id, item.quantity - 1)}
+                                                    className="w-8 h-8 bg-gray-200 rounded-l"
+                                                >
+                                                    -
+                                                </button>
+                                                <input
+                                                    type="number"
+                                                    value={item.quantity}
+                                                    onChange={(e) => updateQuantity(item.id, parseInt(e.target.value) || 0)}
+                                                    className="w-12 h-8 border-y text-center"
+                                                />
+                                                <button
+                                                    onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                                                    className="w-8 h-8 bg-gray-200 rounded-r"
+                                                >
+                                                    +
+                                                </button>
+                                            </div>
+                                            <input
+                                                type="number"
+                                                value={item.price}
+                                                onChange={(e) => updatePrice(item.id, e.target.value)}
+                                                className="w-20 px-2 py-1 border rounded text-right text-sm"
+                                                step="0.01"
+                                            />
+                                            <span className="w-16 text-right font-bold text-sm">
+                                                {(item.price * item.quantity).toFixed(0)}€
+                                            </span>
+                                            <button
+                                                onClick={() => removeItem(item.id)}
+                                                className="text-red-600 p-1"
+                                            >
+                                                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                                    <path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" />
+                                                </svg>
+                                            </button>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+
+                            <div className="mt-4 pt-4 border-t space-y-2">
+                                <div className="flex justify-between text-sm">
+                                    <span>Sous-total:</span>
+                                    <span className="font-semibold">{subtotal.toFixed(2)} €</span>
+                                </div>
+                                <div className="flex justify-between items-center text-sm">
+                                    <span>Remise:</span>
+                                    <div className="flex items-center gap-2">
+                                        <input
+                                            type="number"
+                                            value={discount}
+                                            onChange={(e) => setDiscount(parseFloat(e.target.value) || 0)}
+                                            className="w-16 px-2 py-1 border rounded text-right"
+                                            min="0"
+                                            max="100"
+                                        />
+                                        <span>%</span>
+                                    </div>
+                                </div>
+                                {discount > 0 && (
+                                    <div className="flex justify-between text-sm text-red-600">
+                                        <span>Montant remise:</span>
+                                        <span>-{discountAmount.toFixed(2)} €</span>
+                                    </div>
+                                )}
+                                <div className="flex justify-between text-lg font-bold text-blue-600 pt-2 border-t">
+                                    <span>Total TTC:</span>
+                                    <span>{total.toFixed(2)} €</span>
+                                </div>
+                            </div>
+
+                            <textarea
+                                value={notes}
+                                onChange={(e) => setNotes(e.target.value)}
+                                className="w-full mt-4 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                                rows="2"
+                                placeholder="Notes..."
+                            />
+
+                            <div className="grid grid-cols-2 gap-3 mt-4">
+                                <button
+                                    onClick={saveQuote}
+                                    className="bg-green-600 text-white py-3 rounded-lg font-semibold hover:bg-green-700"
+                                >
+                                    💾 Enregistrer
+                                </button>
+                                <button
+                                    onClick={generatePDF}
+                                    className="bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700"
+                                >
+                                    📄 PDF
+                                </button>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Catalogue */}
+                    <div className="bg-white rounded-xl shadow-md p-4">
+                        <h2 className="text-lg font-bold text-gray-800 mb-4">Catalogue</h2>
+                        
+                        <div className="space-y-3 mb-4">
+                            <input
+                                type="text"
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
+                                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                                placeholder="Rechercher..."
+                            />
+                            <div className="grid grid-cols-2 gap-3">
+                                <select
+                                    value={selectedBrand}
+                                    onChange={(e) => setSelectedBrand(e.target.value)}
+                                    className="px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                                >
+                                    <option value="all">Toutes marques</option>
+                                    <option value="Ajax">Ajax</option>
+                                    <option value="Dahua">Dahua</option>
+                                </select>
+                                <select
+                                    value={selectedCategory}
+                                    onChange={(e) => setSelectedCategory(e.target.value)}
+                                    className="px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                                >
+                                    <option value="all">Toutes catégories</option>
+                                    {categories.filter(c => c !== 'all').map(cat => (
+                                        <option key={cat} value={cat}>{cat}</option>
+                                    ))}
+                                </select>
+                            </div>
+                        </div>
+
+                        <div className="space-y-2 max-h-96 overflow-y-auto">
+                            {filteredProducts.map((product) => (
+                                <div
+                                    key={product.id}
+                                    onClick={() => addItem(product)}
+                                    className="p-3 border border-gray-200 rounded-lg active:bg-gray-100 transition mobile-optimized"
+                                >
+                                    <div className="flex justify-between items-start">
+                                        <div className="flex-1">
+                                            <h3 className="font-semibold text-sm text-gray-800">{product.name}</h3>
+                                            <p className="text-xs text-gray-600">{product.description}</p>
+                                            <span className="inline-block mt-1 px-2 py-0.5 bg-blue-100 text-blue-800 text-xs rounded">
+                                                {product.category}
+                                            </span>
+                                        </div>
+                                        <div className="text-right ml-2">
+                                            <p className="text-lg font-bold text-blue-600">{product.price}€</p>
+                                            <button className="mt-1 text-blue-600 text-xl">+</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                        
+                        {filteredProducts.length === 0 && (
+                            <p className="text-center text-gray-500 py-8">Aucun produit trouvé</p>
+                        )}
+                    </div>
+                </div>
+            );
+        }
+
+        function ProductManager({ products, setProducts }) {
+            const [editingProduct, setEditingProduct] = useState(null);
+            const [searchTerm, setSearchTerm] = useState('');
+
+            const filteredProducts = products.filter(product =>
+                product.name.toLowerCase().includes(searchTerm.toLowerCase())
+            );
+
+            const updateProduct = (id, field, value) => {
+                setProducts(products.map(p => 
+                    p.id === id ? { ...p, [field]: value } : p
+                ));
+            };
+
+            const addNewProduct = () => {
+                const newProduct = {
+                    id: `custom-${Date.now()}`,
+                    category: 'Personnalisé',
+                    name: 'Nouveau produit',
+                    description: 'Description',
+                    price: 0,
+                    brand: 'Personnalisé'
+                };
+                setProducts([...products, newProduct]);
+                setEditingProduct(newProduct.id);
+            };
+
+            const deleteProduct = (id) => {
+                if (confirm('Supprimer ce produit ?')) {
+                    setProducts(products.filter(p => p.id !== id));
+                }
+            };
+
+            const resetToDefaults = () => {
+                if (confirm('Réinitialiser ?')) {
+                    const allProducts = [...AJAX_PRODUCTS, ...DAHUA_PRODUCTS];
+                    setProducts(allProducts);
+                    setEditingProduct(null);
+                }
+            };
+
+            return (
+                <div className="space-y-4">
+                    <div className="flex justify-between items-center">
+                        <h1 className="text-2xl font-bold text-gray-800">Produits</h1>
+                        <div className="flex gap-2">
+                            <button
+                                onClick={resetToDefaults}
+                                className="bg-gray-600 text-white px-3 py-2 rounded-lg text-sm"
+                            >
+                                🔄
+                            </button>
+                            <button
+                                onClick={addNewProduct}
+                                className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm"
+                            >
+                                ➕ Ajouter
+                            </button>
+                        </div>
+                    </div>
+
+                    <div className="bg-white rounded-xl shadow-md p-4">
+                        <input
+                            type="text"
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none mb-4"
+                            placeholder="Rechercher..."
+                        />
+
+                        <div className="space-y-2 max-h-96 overflow-y-auto">
+                            {filteredProducts.map((product) => (
+                                <div key={product.id} className="p-3 border border-gray-200 rounded-lg">
+                                    {editingProduct === product.id ? (
+                                        <div className="space-y-2">
+                                            <input
+                                                type="text"
+                                                value={product.name}
+                                                onChange={(e) => updateProduct(product.id, 'name', e.target.value)}
+                                                className="w-full px-3 py-2 border rounded"
+                                                placeholder="Nom"
+                                            />
+                                            <input
+                                                type="text"
+                                                value={product.description}
+                                                onChange={(e) => updateProduct(product.id, 'description', e.target.value)}
+                                                className="w-full px-3 py-2 border rounded"
+                                                placeholder="Description"
+                                            />
+                                            <div className="flex gap-2">
+                                                <input
+                                                    type="text"
+                                                    value={product.category}
+                                                    onChange={(e) => updateProduct(product.id, 'category', e.target.value)}
+                                                    className="flex-1 px-3 py-2 border rounded"
+                                                    placeholder="Catégorie"
+                                                />
+                                                <input
+                                                    type="number"
+                                                    value={product.price}
+                                                    onChange={(e) => updateProduct(product.id, 'price', parseFloat(e.target.value) || 0)}
+                                                    className="w-24 px-3 py-2 border rounded"
+                                                    placeholder="Prix"
+                                                    step="0.01"
+                                                />
+                                            </div>
+                                            <div className="flex gap-2">
+                                                <button
+                                                    onClick={() => setEditingProduct(null)}
+                                                    className="flex-1 bg-green-600 text-white py-2 rounded"
+                                                >
+                                                    ✅ Valider
+                                                </button>
+                                                {product.id.startsWith('custom-') && (
+                                                    <button
+                                                        onClick={() => deleteProduct(product.id)}
+                                                        className="bg-red-600 text-white px-4 py-2 rounded"
+                                                    >
+                                                        🗑️
+                                                    </button>
+                                                )}
+                                            </div>
+                                        </div>
+                                    ) : (
+                                        <div className="flex justify-between items-center">
+                                            <div className="flex-1">
+                                                <h3 className="font-semibold text-sm">{product.name}</h3>
+                                                <p className="text-xs text-gray-600">{product.description}</p>
+                                                <span className="inline-block mt-1 px-2 py-0.5 bg-blue-100 text-blue-800 text-xs rounded">
+                                                    {product.category}
+                                                </span>
+                                            </div>
+                                            <div className="flex items-center gap-3">
+                                                <span className="font-bold text-blue-600">{product.price}€</span>
+                                                <button
+                                                    onClick={() => setEditingProduct(product.id)}
+                                                    className="text-blue-600 p-2"
+                                                >
+                                                    ✏️
+                                                </button>
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+
+        ReactDOM.render(<App />, document.getElementById('root'));
+    </script>
+</body>
+</html>
