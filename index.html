@@ -1,1 +1,1566 @@
 
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#000000">
+    <title>Foloneo</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=SF+Pro+Display:wght@300;400;500;600;700&family=New+York:wght@400;600;700&display=swap" rel="stylesheet">
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+        
+        :root {
+            --primary: #007AFF;
+            --secondary: #5856D6;
+            --success: #34C759;
+            --warning: #FF9500;
+            --danger: #FF3B30;
+            --bg-primary: #000000;
+            --bg-secondary: #1C1C1E;
+            --bg-tertiary: #2C2C2E;
+            --bg-elevated: #3A3A3C;
+            --text-primary: #FFFFFF;
+            --text-secondary: rgba(255, 255, 255, 0.6);
+            --text-tertiary: rgba(255, 255, 255, 0.4);
+            --separator: rgba(255, 255, 255, 0.1);
+            --blur: blur(40px);
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            overscroll-behavior: none;
+            font-size: 17px;
+            line-height: 1.47059;
+            font-weight: 400;
+            letter-spacing: -0.022em;
+        }
+        
+        .glass {
+            background: rgba(28, 28, 30, 0.7);
+            backdrop-filter: var(--blur);
+            -webkit-backdrop-filter: var(--blur);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .card {
+            background: var(--bg-secondary);
+            border-radius: 20px;
+            padding: 24px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 30px 80px rgba(0, 0, 0, 0.4);
+        }
+        
+        .btn {
+            padding: 14px 28px;
+            border-radius: 12px;
+            border: none;
+            font-size: 17px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            letter-spacing: -0.022em;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.1);
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
+        }
+        
+        .btn:active::before {
+            width: 300px;
+            height: 300px;
+        }
+        
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #0051D5;
+            transform: scale(1.02);
+        }
+        
+        .btn-secondary {
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+        }
+        
+        .btn-secondary:hover {
+            background: var(--bg-elevated);
+        }
+        
+        .input {
+            width: 100%;
+            padding: 16px 20px;
+            background: var(--bg-tertiary);
+            border: 2px solid transparent;
+            border-radius: 12px;
+            color: var(--text-primary);
+            font-size: 17px;
+            transition: all 0.3s ease;
+            font-family: inherit;
+        }
+        
+        .input:focus {
+            outline: none;
+            border-color: var(--primary);
+            background: var(--bg-secondary);
+        }
+        
+        .input::placeholder {
+            color: var(--text-tertiary);
+        }
+        
+        .gradient-text {
+            background: linear-gradient(135deg, #007AFF 0%, #5856D6 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .nav-bar {
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: var(--blur);
+            -webkit-backdrop-filter: var(--blur);
+            border-bottom: 1px solid var(--separator);
+        }
+        
+        .floating-action {
+            position: fixed;
+            bottom: 90px;
+            right: 24px;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            box-shadow: 0 8px 30px rgba(0, 122, 255, 0.4);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            z-index: 999;
+        }
+        
+        .floating-action:hover {
+            transform: scale(1.1) rotate(90deg);
+            box-shadow: 0 12px 40px rgba(0, 122, 255, 0.6);
+        }
+        
+        .tab-bar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 80px;
+            background: rgba(28, 28, 30, 0.9);
+            backdrop-filter: var(--blur);
+            -webkit-backdrop-filter: var(--blur);
+            border-top: 1px solid var(--separator);
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            padding: 0 20px;
+            z-index: 1000;
+        }
+        
+        .tab-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            padding: 8px 16px;
+            border-radius: 12px;
+        }
+        
+        .tab-item.active {
+            background: rgba(0, 122, 255, 0.15);
+            color: var(--primary);
+        }
+        
+        .tab-icon {
+            font-size: 24px;
+        }
+        
+        .tab-label {
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 0.06em;
+        }
+        
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+            animation: fadeIn 0.3s ease;
+            padding: 20px;
+        }
+        
+        .modal {
+            background: var(--bg-secondary);
+            border-radius: 28px;
+            max-width: 500px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+            animation: slideUp 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 30px 80px rgba(0, 0, 0, 0.5);
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px) scale(0.95);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+        
+        .stat-card {
+            background: linear-gradient(135deg, var(--bg-secondary) 0%, var(--bg-tertiary) 100%);
+            border-radius: 20px;
+            padding: 24px;
+            border: 1px solid var(--separator);
+            transition: all 0.3s ease;
+        }
+        
+        .stat-card:hover {
+            transform: translateY(-2px);
+            border-color: var(--primary);
+        }
+        
+        .product-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 16px;
+        }
+        
+        .product-card {
+            background: var(--bg-secondary);
+            border-radius: 16px;
+            padding: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+        
+        .product-card:hover {
+            border-color: var(--primary);
+            transform: translateY(-4px);
+            box-shadow: 0 12px 40px rgba(0, 122, 255, 0.2);
+        }
+        
+        .badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            letter-spacing: 0.02em;
+        }
+        
+        .badge-primary {
+            background: rgba(0, 122, 255, 0.15);
+            color: var(--primary);
+        }
+        
+        .badge-success {
+            background: rgba(52, 199, 89, 0.15);
+            color: var(--success);
+        }
+        
+        .badge-warning {
+            background: rgba(255, 149, 0, 0.15);
+            color: var(--warning);
+        }
+        
+        .divider {
+            height: 1px;
+            background: var(--separator);
+            margin: 24px 0;
+        }
+        
+        .scroll-container {
+            overflow-y: auto;
+            height: calc(100vh - 140px);
+            padding-bottom: 100px;
+        }
+        
+        .scroll-container::-webkit-scrollbar {
+            width: 8px;
+        }
+        
+        .scroll-container::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        
+        .scroll-container::-webkit-scrollbar-thumb {
+            background: var(--bg-elevated);
+            border-radius: 4px;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--text-secondary);
+        }
+        
+        .empty-state-icon {
+            font-size: 64px;
+            margin-bottom: 16px;
+            opacity: 0.3;
+        }
+        
+        @media (max-width: 768px) {
+            .product-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .context-menu {
+            position: absolute;
+            background: var(--bg-secondary);
+            border-radius: 16px;
+            padding: 8px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+            border: 1px solid var(--separator);
+            z-index: 3000;
+            min-width: 200px;
+        }
+
+        .context-menu-item {
+            padding: 12px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 15px;
+        }
+
+        .context-menu-item:hover {
+            background: var(--bg-tertiary);
+        }
+
+        .search-bar {
+            position: relative;
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-tertiary);
+        }
+
+        .search-bar input {
+            padding-left: 48px;
+        }
+
+        input[type="number"]::-webkit-inner-spin-button,
+        input[type="number"]::-webkit-outer-spin-button {
+            opacity: 1;
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect, useRef } = React;
+
+        // Données produits
+        const AJAX_PRODUCTS = [
+            { id: 'ajax-hub2', category: 'Centrales', name: 'Hub 2 (2G)', description: 'Centrale alarme 2G', price: 199, brand: 'Ajax' },
+            { id: 'ajax-hub2-plus', category: 'Centrales', name: 'Hub 2 Plus', description: 'Centrale avec caméra', price: 349, brand: 'Ajax' },
+            { id: 'ajax-hub-hybrid', category: 'Centrales', name: 'Hub Hybrid', description: 'Centrale hybride', price: 299, brand: 'Ajax' },
+            { id: 'ajax-motionprotect', category: 'Détecteurs', name: 'MotionProtect', description: 'Détecteur mouvement', price: 69, brand: 'Ajax' },
+            { id: 'ajax-motionprotect-plus', category: 'Détecteurs', name: 'MotionProtect Plus', description: 'Immunité animaux', price: 89, brand: 'Ajax' },
+            { id: 'ajax-motioncam', category: 'Détecteurs', name: 'MotionCam', description: 'Détecteur avec photo', price: 149, brand: 'Ajax' },
+            { id: 'ajax-doorprotect', category: 'Détecteurs', name: 'DoorProtect', description: 'Contact ouverture', price: 39, brand: 'Ajax' },
+            { id: 'ajax-fireprotect', category: 'Détecteurs', name: 'FireProtect', description: 'Détecteur fumée', price: 79, brand: 'Ajax' },
+            { id: 'ajax-keypad', category: 'Commandes', name: 'KeyPad', description: 'Clavier à code', price: 99, brand: 'Ajax' },
+            { id: 'ajax-homesiren', category: 'Sirènes', name: 'HomeSiren', description: 'Sirène intérieure', price: 89, brand: 'Ajax' },
+            { id: 'ajax-streetsiren', category: 'Sirènes', name: 'StreetSiren', description: 'Sirène extérieure', price: 139, brand: 'Ajax' },
+        ];
+
+        const DAHUA_PRODUCTS = [
+            { id: 'dahua-nvr4108', category: 'Enregistreurs', name: 'NVR 8CH 4K PoE', description: 'NVR 8 canaux', price: 249, brand: 'Dahua' },
+            { id: 'dahua-nvr4116', category: 'Enregistreurs', name: 'NVR 16CH 4K PoE', description: 'NVR 16 canaux', price: 349, brand: 'Dahua' },
+            { id: 'dahua-cam-bullet-4mp', category: 'Caméras', name: 'Bullet 4MP', description: 'Bullet IR 40m', price: 119, brand: 'Dahua' },
+            { id: 'dahua-cam-dome-4mp', category: 'Caméras', name: 'Dôme 4MP', description: 'Dôme IR 30m', price: 129, brand: 'Dahua' },
+            { id: 'dahua-hdd-2tb', category: 'Accessoires', name: 'HDD 2To', description: 'Disque surveillance', price: 89, brand: 'Dahua' },
+        ];
+
+        // Gestion des utilisateurs
+        const UserUtils = {
+            getAllUsers: () => JSON.parse(localStorage.getItem('foloneo_users') || '{}'),
+            saveUsers: (users) => localStorage.setItem('foloneo_users', JSON.stringify(users)),
+            createUser: (username, password, email, role = 'user') => {
+                const users = UserUtils.getAllUsers();
+                if (users[username]) return { success: false, message: 'Cet identifiant existe déjà' };
+                users[username] = { password, email, role, createdAt: new Date().toISOString(), active: true };
+                UserUtils.saveUsers(users);
+                return { success: true, message: 'Compte créé avec succès' };
+            },
+            validateUser: (username, password) => {
+                const users = UserUtils.getAllUsers();
+                if (users[username] && users[username].password === password && users[username].active) {
+                    return { success: true, user: { username, role: users[username].role, email: users[username].email } };
+                }
+                return { success: false };
+            },
+            updateUser: (username, updates) => {
+                const users = UserUtils.getAllUsers();
+                if (users[username]) {
+                    users[username] = { ...users[username], ...updates };
+                    UserUtils.saveUsers(users);
+                    return { success: true };
+                }
+                return { success: false };
+            },
+            deleteUser: (username) => {
+                const users = UserUtils.getAllUsers();
+                delete users[username];
+                UserUtils.saveUsers(users);
+            }
+        };
+
+        // Initialiser l'admin
+        const initDefaultAdmin = () => {
+            const users = UserUtils.getAllUsers();
+            if (!users['admin']) {
+                UserUtils.createUser('admin', 'Foloneo2024!', 'admin@foloneo.fr', 'admin');
+            }
+        };
+
+        function App() {
+            const [isAuthenticated, setIsAuthenticated] = useState(false);
+            const [currentUser, setCurrentUser] = useState(null);
+            const [currentView, setCurrentView] = useState('dashboard');
+            const [products, setProducts] = useState([]);
+            const [quotes, setQuotes] = useState([]);
+            const [currentQuote, setCurrentQuote] = useState(null);
+
+            useEffect(() => {
+                initDefaultAdmin();
+                
+                const savedProducts = localStorage.getItem('foloneo_products');
+                if (savedProducts) {
+                    setProducts(JSON.parse(savedProducts));
+                } else {
+                    const allProducts = [...AJAX_PRODUCTS, ...DAHUA_PRODUCTS];
+                    setProducts(allProducts);
+                    localStorage.setItem('foloneo_products', JSON.stringify(allProducts));
+                }
+
+                const savedQuotes = localStorage.getItem('foloneo_quotes');
+                if (savedQuotes) setQuotes(JSON.parse(savedQuotes));
+            }, []);
+
+            useEffect(() => {
+                if (products.length > 0) localStorage.setItem('foloneo_products', JSON.stringify(products));
+            }, [products]);
+
+            useEffect(() => {
+                localStorage.setItem('foloneo_quotes', JSON.stringify(quotes));
+            }, [quotes]);
+
+            const handleLogin = (user) => {
+                setIsAuthenticated(true);
+                setCurrentUser(user);
+            };
+
+            const handleLogout = () => {
+                setIsAuthenticated(false);
+                setCurrentUser(null);
+                setCurrentView('dashboard');
+            };
+
+            if (!isAuthenticated) {
+                return <LoginScreen onLogin={handleLogin} />;
+            }
+
+            return (
+                <div style={{ minHeight: '100vh' }}>
+                    <NavBar 
+                        currentUser={currentUser}
+                        currentView={currentView}
+                        setCurrentView={setCurrentView}
+                        onLogout={handleLogout}
+                        setCurrentQuote={setCurrentQuote}
+                    />
+                    
+                    <div className="scroll-container" style={{ padding: '20px' }}>
+                        {currentView === 'dashboard' && (
+                            <Dashboard 
+                                quotes={quotes}
+                                setQuotes={setQuotes}
+                                setCurrentView={setCurrentView}
+                                setCurrentQuote={setCurrentQuote}
+                            />
+                        )}
+                        {currentView === 'quotes' && (
+                            <QuoteCreator 
+                                products={products}
+                                quotes={quotes}
+                                setQuotes={setQuotes}
+                                currentQuote={currentQuote}
+                                setCurrentQuote={setCurrentQuote}
+                                setCurrentView={setCurrentView}
+                                currentUser={currentUser}
+                            />
+                        )}
+                        {currentView === 'products' && (
+                            <ProductManager 
+                                products={products}
+                                setProducts={setProducts}
+                            />
+                        )}
+                        {currentView === 'users' && currentUser.role === 'admin' && (
+                            <UserManager currentUser={currentUser} />
+                        )}
+                    </div>
+
+                    <TabBar 
+                        currentView={currentView}
+                        setCurrentView={setCurrentView}
+                        setCurrentQuote={setCurrentQuote}
+                        currentUser={currentUser}
+                    />
+                </div>
+            );
+        }
+
+        // Écran de connexion premium
+        function LoginScreen({ onLogin }) {
+            const [username, setUsername] = useState('');
+            const [password, setPassword] = useState('');
+            const [error, setError] = useState('');
+            const [isLoading, setIsLoading] = useState(false);
+
+            const handleLogin = async (e) => {
+                e.preventDefault();
+                setError('');
+                setIsLoading(true);
+
+                // Simulation du délai de connexion pour l'effet
+                await new Promise(resolve => setTimeout(resolve, 800));
+
+                const result = UserUtils.validateUser(username, password);
+                if (result.success) {
+                    onLogin(result.user);
+                } else {
+                    setError('Identifiants incorrects');
+                    setIsLoading(false);
+                }
+            };
+
+            return (
+                <div style={{
+                    minHeight: '100vh',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    padding: '20px',
+                    background: 'linear-gradient(135deg, #000000 0%, #1a1a2e 100%)'
+                }}>
+                    <div style={{ maxWidth: '400px', width: '100%' }}>
+                        <div style={{ textAlign: 'center', marginBottom: '48px' }}>
+                            <div style={{
+                                width: '80px',
+                                height: '80px',
+                                margin: '0 auto 24px',
+                                background: 'linear-gradient(135deg, var(--primary), var(--secondary))',
+                                borderRadius: '20px',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                fontSize: '36px',
+                                fontWeight: '700',
+                                boxShadow: '0 20px 60px rgba(0, 122, 255, 0.4)'
+                            }}>
+                                F
+                            </div>
+                            <h1 style={{
+                                fontSize: '34px',
+                                fontWeight: '700',
+                                marginBottom: '8px',
+                                letterSpacing: '-0.03em'
+                            }}>
+                                Foloneo
+                            </h1>
+                            <p style={{ color: 'var(--text-secondary)', fontSize: '17px' }}>
+                                Générateur de Devis Pro
+                            </p>
+                        </div>
+
+                        <form onSubmit={handleLogin} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                            <input
+                                type="text"
+                                value={username}
+                                onChange={(e) => setUsername(e.target.value)}
+                                className="input"
+                                placeholder="Identifiant"
+                                required
+                                autoComplete="username"
+                                disabled={isLoading}
+                            />
+
+                            <input
+                                type="password"
+                                value={password}
+                                onChange={(e) => setPassword(e.target.value)}
+                                className="input"
+                                placeholder="Mot de passe"
+                                required
+                                autoComplete="current-password"
+                                disabled={isLoading}
+                            />
+
+                            {error && (
+                                <div style={{
+                                    padding: '16px',
+                                    background: 'rgba(255, 59, 48, 0.1)',
+                                    border: '1px solid rgba(255, 59, 48, 0.3)',
+                                    borderRadius: '12px',
+                                    color: 'var(--danger)',
+                                    fontSize: '15px'
+                                }}>
+                                    {error}
+                                </div>
+                            )}
+
+                            <button
+                                type="submit"
+                                className="btn btn-primary"
+                                disabled={isLoading}
+                                style={{ marginTop: '8px', position: 'relative' }}
+                            >
+                                {isLoading ? (
+                                    <span style={{ opacity: 0.6 }}>Connexion...</span>
+                                ) : (
+                                    'Se connecter'
+                                )}
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            );
+        }
+
+        // Barre de navigation premium
+        function NavBar({ currentUser, currentView, setCurrentView, onLogout, setCurrentQuote }) {
+            const [showUserMenu, setShowUserMenu] = useState(false);
+
+            return (
+                <div className="nav-bar">
+                    <div style={{
+                        maxWidth: '1200px',
+                        margin: '0 auto',
+                        padding: '16px 20px',
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center'
+                    }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                            <div style={{
+                                width: '40px',
+                                height: '40px',
+                                background: 'linear-gradient(135deg, var(--primary), var(--secondary))',
+                                borderRadius: '10px',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                fontSize: '20px',
+                                fontWeight: '700'
+                            }}>
+                                F
+                            </div>
+                            <span style={{ fontSize: '20px', fontWeight: '600', letterSpacing: '-0.02em' }}>
+                                Foloneo
+                            </span>
+                        </div>
+
+                        <div style={{ position: 'relative' }}>
+                            <button
+                                onClick={() => setShowUserMenu(!showUserMenu)}
+                                className="btn btn-secondary"
+                                style={{ padding: '8px 16px', display: 'flex', alignItems: 'center', gap: '8px' }}
+                            >
+                                <div style={{
+                                    width: '32px',
+                                    height: '32px',
+                                    borderRadius: '50%',
+                                    background: 'linear-gradient(135deg, var(--primary), var(--secondary))',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    fontSize: '14px',
+                                    fontWeight: '600'
+                                }}>
+                                    {currentUser.username.charAt(0).toUpperCase()}
+                                </div>
+                                <span style={{ fontSize: '15px' }}>{currentUser.username}</span>
+                                <span style={{ fontSize: '12px' }}>▼</span>
+                            </button>
+
+                            {showUserMenu && (
+                                <>
+                                    <div 
+                                        style={{ position: 'fixed', inset: 0, zIndex: 1999 }}
+                                        onClick={() => setShowUserMenu(false)}
+                                    />
+                                    <div className="context-menu" style={{ top: '60px', right: 0 }}>
+                                        <div className="context-menu-item" onClick={() => {
+                                            setCurrentView('users');
+                                            setShowUserMenu(false);
+                                        }}>
+                                            <span>👤</span>
+                                            <span>Mon profil</span>
+                                        </div>
+                                        {currentUser.role === 'admin' && (
+                                            <div className="context-menu-item" onClick={() => {
+                                                setCurrentView('users');
+                                                setShowUserMenu(false);
+                                            }}>
+                                                <span>👥</span>
+                                                <span>Utilisateurs</span>
+                                            </div>
+                                        )}
+                                        <div style={{ height: '1px', background: 'var(--separator)', margin: '8px 0' }} />
+                                        <div className="context-menu-item" onClick={() => {
+                                            onLogout();
+                                            setShowUserMenu(false);
+                                        }} style={{ color: 'var(--danger)' }}>
+                                            <span>🚪</span>
+                                            <span>Déconnexion</span>
+                                        </div>
+                                    </div>
+                                </>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+
+        // Barre d'onglets inférieure
+        function TabBar({ currentView, setCurrentView, setCurrentQuote, currentUser }) {
+            const tabs = [
+                { id: 'dashboard', icon: '🏠', label: 'Accueil' },
+                { id: 'quotes', icon: '📝', label: 'Devis' },
+                { id: 'products', icon: '📦', label: 'Produits' },
+                { id: 'users', icon: currentUser.role === 'admin' ? '👥' : '⚙️', label: currentUser.role === 'admin' ? 'Équipe' : 'Profil' }
+            ];
+
+            return (
+                <div className="tab-bar">
+                    {tabs.map(tab => (
+                        <div
+                            key={tab.id}
+                            className={`tab-item ${currentView === tab.id ? 'active' : ''}`}
+                            onClick={() => {
+                                if (tab.id === 'quotes') setCurrentQuote(null);
+                                setCurrentView(tab.id);
+                            }}
+                        >
+                            <div className="tab-icon">{tab.icon}</div>
+                            <div className="tab-label">{tab.label}</div>
+                        </div>
+                    ))}
+                </div>
+            );
+        }
+
+        // Dashboard avec stats
+        function Dashboard({ quotes, setQuotes, setCurrentView, setCurrentQuote }) {
+            const totalQuotes = quotes.length;
+            const totalAmount = quotes.reduce((sum, q) => sum + (q.total || 0), 0);
+            const avgAmount = totalQuotes > 0 ? totalAmount / totalQuotes : 0;
+            const recentQuotes = [...quotes].reverse().slice(0, 5);
+
+            return (
+                <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
+                    <div style={{ marginBottom: '32px' }}>
+                        <h1 style={{ fontSize: '34px', fontWeight: '700', marginBottom: '8px', letterSpacing: '-0.03em' }}>
+                            Tableau de bord
+                        </h1>
+                        <p style={{ color: 'var(--text-secondary)', fontSize: '17px' }}>
+                            Vue d'ensemble de votre activité
+                        </p>
+                    </div>
+
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '20px', marginBottom: '40px' }}>
+                        <div className="stat-card">
+                            <div style={{ fontSize: '40px', marginBottom: '12px' }}>📊</div>
+                            <div style={{ fontSize: '32px', fontWeight: '700', marginBottom: '4px' }}>{totalQuotes}</div>
+                            <div style={{ color: 'var(--text-secondary)', fontSize: '15px' }}>Devis créés</div>
+                        </div>
+                        <div className="stat-card">
+                            <div style={{ fontSize: '40px', marginBottom: '12px' }}>💰</div>
+                            <div style={{ fontSize: '32px', fontWeight: '700', marginBottom: '4px' }}>{totalAmount.toFixed(0)} €</div>
+                            <div style={{ color: 'var(--text-secondary)', fontSize: '15px' }}>Montant total</div>
+                        </div>
+                        <div className="stat-card">
+                            <div style={{ fontSize: '40px', marginBottom: '12px' }}>📈</div>
+                            <div style={{ fontSize: '32px', fontWeight: '700', marginBottom: '4px' }}>{avgAmount.toFixed(0)} €</div>
+                            <div style={{ color: 'var(--text-secondary)', fontSize: '15px' }}>Ticket moyen</div>
+                        </div>
+                    </div>
+
+                    <div className="card">
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+                            <h2 style={{ fontSize: '24px', fontWeight: '600' }}>Devis récents</h2>
+                            <button
+                                onClick={() => setCurrentView('quotes')}
+                                className="btn btn-primary"
+                                style={{ padding: '10px 20px' }}
+                            >
+                                + Nouveau
+                            </button>
+                        </div>
+
+                        {recentQuotes.length === 0 ? (
+                            <div className="empty-state">
+                                <div className="empty-state-icon">📝</div>
+                                <h3 style={{ fontSize: '20px', fontWeight: '600', marginBottom: '8px' }}>Aucun devis</h3>
+                                <p style={{ marginBottom: '24px' }}>Commencez par créer votre premier devis</p>
+                                <button onClick={() => setCurrentView('quotes')} className="btn btn-primary">
+                                    Créer un devis
+                                </button>
+                            </div>
+                        ) : (
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                                {recentQuotes.map(quote => (
+                                    <div
+                                        key={quote.id}
+                                        className="card"
+                                        style={{ padding: '20px', cursor: 'pointer' }}
+                                        onClick={() => {
+                                            setCurrentQuote(quote);
+                                            setCurrentView('quotes');
+                                        }}
+                                    >
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                            <div style={{ flex: 1 }}>
+                                                <div style={{ fontSize: '17px', fontWeight: '600', marginBottom: '4px' }}>
+                                                    {quote.clientName}
+                                                </div>
+                                                <div style={{ color: 'var(--text-secondary)', fontSize: '15px' }}>
+                                                    {new Date(quote.date).toLocaleDateString('fr-FR')} • {quote.items.length} produits
+                                                </div>
+                                            </div>
+                                            <div style={{ fontSize: '24px', fontWeight: '700', color: 'var(--primary)' }}>
+                                                {quote.total.toFixed(0)} €
+                                            </div>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+                    </div>
+                </div>
+            );
+        }
+
+        // Gestionnaire de produits amélioré
+        function ProductManager({ products, setProducts }) {
+            const [searchTerm, setSearchTerm] = useState('');
+            const [selectedBrand, setSelectedBrand] = useState('all');
+            const [editingProduct, setEditingProduct] = useState(null);
+            const [showAddModal, setShowAddModal] = useState(false);
+
+            const filteredProducts = products.filter(p => {
+                const matchesSearch = p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                                    p.description.toLowerCase().includes(searchTerm.toLowerCase());
+                const matchesBrand = selectedBrand === 'all' || p.brand === selectedBrand;
+                return matchesSearch && matchesBrand;
+            });
+
+            const updateProduct = (id, field, value) => {
+                setProducts(products.map(p => p.id === id ? { ...p, [field]: value } : p));
+            };
+
+            const addProduct = (product) => {
+                setProducts([...products, { ...product, id: `custom-${Date.now()}` }]);
+            };
+
+            const deleteProduct = (id) => {
+                if (confirm('Supprimer ce produit ?')) {
+                    setProducts(products.filter(p => p.id !== id));
+                }
+            };
+
+            return (
+                <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
+                    <div style={{ marginBottom: '32px' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                            <div>
+                                <h1 style={{ fontSize: '34px', fontWeight: '700', marginBottom: '8px', letterSpacing: '-0.03em' }}>
+                                    Catalogue
+                                </h1>
+                                <p style={{ color: 'var(--text-secondary)', fontSize: '17px' }}>
+                                    {filteredProducts.length} produits
+                                </p>
+                            </div>
+                            <button
+                                onClick={() => setShowAddModal(true)}
+                                className="btn btn-primary"
+                            >
+                                + Ajouter
+                            </button>
+                        </div>
+
+                        <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '12px' }}>
+                            <div className="search-bar">
+                                <span className="search-icon">🔍</span>
+                                <input
+                                    type="text"
+                                    value={searchTerm}
+                                    onChange={(e) => setSearchTerm(e.target.value)}
+                                    className="input"
+                                    placeholder="Rechercher un produit..."
+                                />
+                            </div>
+                            <select
+                                value={selectedBrand}
+                                onChange={(e) => setSelectedBrand(e.target.value)}
+                                className="input"
+                            >
+                                <option value="all">Toutes les marques</option>
+                                <option value="Ajax">Ajax System</option>
+                                <option value="Dahua">Dahua</option>
+                                <option value="Personnalisé">Personnalisé</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div className="product-grid">
+                        {filteredProducts.map(product => (
+                            <div key={product.id} className="product-card">
+                                {editingProduct === product.id ? (
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                                        <input
+                                            type="text"
+                                            value={product.name}
+                                            onChange={(e) => updateProduct(product.id, 'name', e.target.value)}
+                                            className="input"
+                                            placeholder="Nom"
+                                        />
+                                        <input
+                                            type="text"
+                                            value={product.description}
+                                            onChange={(e) => updateProduct(product.id, 'description', e.target.value)}
+                                            className="input"
+                                            placeholder="Description"
+                                        />
+                                        <input
+                                            type="text"
+                                            value={product.category}
+                                            onChange={(e) => updateProduct(product.id, 'category', e.target.value)}
+                                            className="input"
+                                            placeholder="Catégorie"
+                                        />
+                                        <input
+                                            type="number"
+                                            value={product.price}
+                                            onChange={(e) => updateProduct(product.id, 'price', parseFloat(e.target.value) || 0)}
+                                            className="input"
+                                            placeholder="Prix"
+                                            step="0.01"
+                                        />
+                                        <div style={{ display: 'flex', gap: '8px' }}>
+                                            <button
+                                                onClick={() => setEditingProduct(null)}
+                                                className="btn btn-primary"
+                                                style={{ flex: 1 }}
+                                            >
+                                                ✓ Valider
+                                            </button>
+                                            {product.id.startsWith('custom-') && (
+                                                <button
+                                                    onClick={() => deleteProduct(product.id)}
+                                                    className="btn"
+                                                    style={{ background: 'var(--danger)', color: 'white' }}
+                                                >
+                                                    🗑️
+                                                </button>
+                                            )}
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <>
+                                        <div style={{ marginBottom: '16px' }}>
+                                            <div className="badge badge-primary" style={{ marginBottom: '8px' }}>
+                                                {product.category}
+                                            </div>
+                                            <h3 style={{ fontSize: '19px', fontWeight: '600', marginBottom: '4px' }}>
+                                                {product.name}
+                                            </h3>
+                                            <p style={{ color: 'var(--text-secondary)', fontSize: '15px' }}>
+                                                {product.description}
+                                            </p>
+                                        </div>
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                            <div style={{ fontSize: '28px', fontWeight: '700', color: 'var(--primary)' }}>
+                                                {product.price} €
+                                            </div>
+                                            <button
+                                                onClick={() => setEditingProduct(product.id)}
+                                                className="btn btn-secondary"
+                                                style={{ padding: '8px 16px' }}
+                                            >
+                                                ✏️ Modifier
+                                            </button>
+                                        </div>
+                                    </>
+                                )}
+                            </div>
+                        ))}
+                    </div>
+
+                    {filteredProducts.length === 0 && (
+                        <div className="empty-state">
+                            <div className="empty-state-icon">📦</div>
+                            <h3 style={{ fontSize: '20px', fontWeight: '600', marginBottom: '8px' }}>Aucun produit trouvé</h3>
+                            <p>Essayez de modifier vos filtres</p>
+                        </div>
+                    )}
+
+                    {showAddModal && (
+                        <AddProductModal
+                            onClose={() => setShowAddModal(false)}
+                            onAdd={(product) => {
+                                addProduct(product);
+                                setShowAddModal(false);
+                            }}
+                        />
+                    )}
+                </div>
+            );
+        }
+
+        // Modal d'ajout de produit
+        function AddProductModal({ onClose, onAdd }) {
+            const [name, setName] = useState('');
+            const [description, setDescription] = useState('');
+            const [category, setCategory] = useState('');
+            const [price, setPrice] = useState('');
+            const [brand, setBrand] = useState('Personnalisé');
+
+            const handleSubmit = (e) => {
+                e.preventDefault();
+                onAdd({ name, description, category, price: parseFloat(price), brand });
+            };
+
+            return (
+                <div className="modal-overlay" onClick={onClose}>
+                    <div className="modal" onClick={(e) => e.stopPropagation()}>
+                        <div style={{ padding: '32px' }}>
+                            <h2 style={{ fontSize: '28px', fontWeight: '700', marginBottom: '24px' }}>
+                                Nouveau produit
+                            </h2>
+                            <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                                <input
+                                    type="text"
+                                    value={name}
+                                    onChange={(e) => setName(e.target.value)}
+                                    className="input"
+                                    placeholder="Nom du produit"
+                                    required
+                                />
+                                <input
+                                    type="text"
+                                    value={description}
+                                    onChange={(e) => setDescription(e.target.value)}
+                                    className="input"
+                                    placeholder="Description"
+                                    required
+                                />
+                                <input
+                                    type="text"
+                                    value={category}
+                                    onChange={(e) => setCategory(e.target.value)}
+                                    className="input"
+                                    placeholder="Catégorie"
+                                    required
+                                />
+                                <input
+                                    type="number"
+                                    value={price}
+                                    onChange={(e) => setPrice(e.target.value)}
+                                    className="input"
+                                    placeholder="Prix"
+                                    step="0.01"
+                                    required
+                                />
+                                <div style={{ display: 'flex', gap: '12px' }}>
+                                    <button type="button" onClick={onClose} className="btn btn-secondary" style={{ flex: 1 }}>
+                                        Annuler
+                                    </button>
+                                    <button type="submit" className="btn btn-primary" style={{ flex: 1 }}>
+                                        Ajouter
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+
+        // Gestionnaire d'utilisateurs
+        function UserManager({ currentUser }) {
+            const [users, setUsers] = useState({});
+            const [showAddModal, setShowAddModal] = useState(false);
+            const [editingUser, setEditingUser] = useState(null);
+
+            useEffect(() => {
+                loadUsers();
+            }, []);
+
+            const loadUsers = () => {
+                setUsers(UserUtils.getAllUsers());
+            };
+
+            return (
+                <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
+                    <div style={{ marginBottom: '32px' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                            <div>
+                                <h1 style={{ fontSize: '34px', fontWeight: '700', marginBottom: '8px', letterSpacing: '-0.03em' }}>
+                                    {currentUser.role === 'admin' ? 'Gestion des utilisateurs' : 'Mon profil'}
+                                </h1>
+                                <p style={{ color: 'var(--text-secondary)', fontSize: '17px' }}>
+                                    {currentUser.role === 'admin' ? `${Object.keys(users).length} utilisateurs` : 'Informations personnelles'}
+                                </p>
+                            </div>
+                            {currentUser.role === 'admin' && (
+                                <button onClick={() => setShowAddModal(true)} className="btn btn-primary">
+                                    + Ajouter
+                                </button>
+                            )}
+                        </div>
+                    </div>
+
+                    <div style={{ display: 'grid', gap: '16px' }}>
+                        {Object.entries(users).map(([username, user]) => (
+                            <div key={username} className="card">
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                                        <div style={{
+                                            width: '60px',
+                                            height: '60px',
+                                            borderRadius: '50%',
+                                            background: 'linear-gradient(135deg, var(--primary), var(--secondary))',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            justifyContent: 'center',
+                                            fontSize: '24px',
+                                            fontWeight: '700'
+                                        }}>
+                                            {username.charAt(0).toUpperCase()}
+                                        </div>
+                                        <div>
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
+                                                <h3 style={{ fontSize: '19px', fontWeight: '600' }}>{username}</h3>
+                                                {user.role === 'admin' && (
+                                                    <span className="badge badge-warning">Admin</span>
+                                                )}
+                                                {!user.active && (
+                                                    <span className="badge" style={{ background: 'rgba(255, 59, 48, 0.15)', color: 'var(--danger)' }}>
+                                                        Désactivé
+                                                    </span>
+                                                )}
+                                            </div>
+                                            <div style={{ color: 'var(--text-secondary)', fontSize: '15px' }}>
+                                                {user.email}
+                                            </div>
+                                            <div style={{ color: 'var(--text-tertiary)', fontSize: '13px', marginTop: '4px' }}>
+                                                Créé le {new Date(user.createdAt).toLocaleDateString('fr-FR')}
+                                            </div>
+                                        </div>
+                                    </div>
+                                    {currentUser.role === 'admin' && username !== 'admin' && (
+                                        <div style={{ display: 'flex', gap: '8px' }}>
+                                            <button
+                                                onClick={() => {
+                                                    UserUtils.updateUser(username, { active: !user.active });
+                                                    loadUsers();
+                                                }}
+                                                className="btn btn-secondary"
+                                            >
+                                                {user.active ? '🔒' : '✓'}
+                                            </button>
+                                            <button
+                                                onClick={() => {
+                                                    if (confirm(`Supprimer ${username} ?`)) {
+                                                        UserUtils.deleteUser(username);
+                                                        loadUsers();
+                                                    }
+                                                }}
+                                                className="btn"
+                                                style={{ background: 'var(--danger)', color: 'white' }}
+                                            >
+                                                🗑️
+                                            </button>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+
+                    {showAddModal && (
+                        <AddUserModal
+                            onClose={() => setShowAddModal(false)}
+                            onAdd={() => {
+                                loadUsers();
+                                setShowAddModal(false);
+                            }}
+                        />
+                    )}
+                </div>
+            );
+        }
+
+        // Modal d'ajout d'utilisateur
+        function AddUserModal({ onClose, onAdd }) {
+            const [username, setUsername] = useState('');
+            const [email, setEmail] = useState('');
+            const [password, setPassword] = useState('');
+            const [role, setRole] = useState('user');
+            const [error, setError] = useState('');
+
+            const handleSubmit = (e) => {
+                e.preventDefault();
+                const result = UserUtils.createUser(username, password, email, role);
+                if (result.success) {
+                    onAdd();
+                } else {
+                    setError(result.message);
+                }
+            };
+
+            return (
+                <div className="modal-overlay" onClick={onClose}>
+                    <div className="modal" onClick={(e) => e.stopPropagation()}>
+                        <div style={{ padding: '32px' }}>
+                            <h2 style={{ fontSize: '28px', fontWeight: '700', marginBottom: '24px' }}>
+                                Nouvel utilisateur
+                            </h2>
+                            <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                                <input
+                                    type="text"
+                                    value={username}
+                                    onChange={(e) => setUsername(e.target.value)}
+                                    className="input"
+                                    placeholder="Identifiant"
+                                    required
+                                />
+                                <input
+                                    type="email"
+                                    value={email}
+                                    onChange={(e) => setEmail(e.target.value)}
+                                    className="input"
+                                    placeholder="Email"
+                                    required
+                                />
+                                <input
+                                    type="password"
+                                    value={password}
+                                    onChange={(e) => setPassword(e.target.value)}
+                                    className="input"
+                                    placeholder="Mot de passe"
+                                    required
+                                    minLength="6"
+                                />
+                                <select
+                                    value={role}
+                                    onChange={(e) => setRole(e.target.value)}
+                                    className="input"
+                                >
+                                    <option value="user">Utilisateur</option>
+                                    <option value="admin">Administrateur</option>
+                                </select>
+
+                                {error && (
+                                    <div style={{
+                                        padding: '16px',
+                                        background: 'rgba(255, 59, 48, 0.1)',
+                                        border: '1px solid rgba(255, 59, 48, 0.3)',
+                                        borderRadius: '12px',
+                                        color: 'var(--danger)',
+                                        fontSize: '15px'
+                                    }}>
+                                        {error}
+                                    </div>
+                                )}
+
+                                <div style={{ display: 'flex', gap: '12px' }}>
+                                    <button type="button" onClick={onClose} className="btn btn-secondary" style={{ flex: 1 }}>
+                                        Annuler
+                                    </button>
+                                    <button type="submit" className="btn btn-primary" style={{ flex: 1 }}>
+                                        Créer
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+
+        // Créateur de devis (simplifié pour la taille)
+        function QuoteCreator({ products, quotes, setQuotes, currentQuote, setCurrentQuote, setCurrentView, currentUser }) {
+            const [clientName, setClientName] = useState('');
+            const [selectedItems, setSelectedItems] = useState([]);
+            const [discount, setDiscount] = useState(0);
+
+            useEffect(() => {
+                if (currentQuote) {
+                    setClientName(currentQuote.clientName || '');
+                    setSelectedItems(currentQuote.items || []);
+                    setDiscount(currentQuote.discount || 0);
+                } else {
+                    setClientName('');
+                    setSelectedItems([]);
+                    setDiscount(0);
+                }
+            }, [currentQuote]);
+
+            const subtotal = selectedItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+            const discountAmount = subtotal * (discount / 100);
+            const total = subtotal - discountAmount;
+
+            const saveQuote = () => {
+                const quote = {
+                    id: currentQuote?.id || Date.now(),
+                    date: currentQuote?.date || new Date().toISOString(),
+                    clientName,
+                    items: selectedItems,
+                    subtotal,
+                    discount,
+                    discountAmount,
+                    total,
+                    createdBy: currentUser.username
+                };
+
+                if (currentQuote) {
+                    setQuotes(quotes.map(q => q.id === currentQuote.id ? quote : q));
+                } else {
+                    setQuotes([...quotes, quote]);
+                }
+
+                alert('✅ Devis enregistré !');
+                setCurrentQuote(null);
+                setCurrentView('dashboard');
+            };
+
+            const generatePDF = () => {
+                if (!clientName || selectedItems.length === 0) {
+                    alert('Veuillez remplir les informations');
+                    return;
+                }
+
+                const { jsPDF } = window.jspdf;
+                const doc = new jsPDF();
+
+                // En-tête
+                doc.setFillColor(0, 122, 255);
+                doc.rect(0, 0, 210, 50, 'F');
+                doc.setTextColor(255, 255, 255);
+                doc.setFontSize(32);
+                doc.text('FOLONEO', 20, 25);
+                doc.setFontSize(12);
+                doc.text('Solutions de Sécurité Électronique', 20, 35);
+
+                // Client
+                doc.setTextColor(0, 0, 0);
+                doc.setFontSize(20);
+                doc.text('DEVIS', 20, 65);
+                doc.setFontSize(12);
+                doc.text(`Client: ${clientName}`, 20, 75);
+                doc.text(`Date: ${new Date().toLocaleDateString('fr-FR')}`, 20, 82);
+
+                // Produits
+                let y = 100;
+                doc.setFontSize(10);
+                selectedItems.forEach(item => {
+                    doc.text(`${item.name} x${item.quantity}`, 20, y);
+                    doc.text(`${(item.price * item.quantity).toFixed(2)} €`, 170, y, { align: 'right' });
+                    y += 8;
+                });
+
+                // Total
+                y += 10;
+                doc.line(20, y, 190, y);
+                y += 10;
+                doc.setFontSize(14);
+                doc.text(`TOTAL: ${total.toFixed(2)} €`, 190, y, { align: 'right' });
+
+                doc.save(`Devis_${clientName}.pdf`);
+            };
+
+            return (
+                <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
+                    <div style={{ marginBottom: '32px' }}>
+                        <h1 style={{ fontSize: '34px', fontWeight: '700', marginBottom: '8px', letterSpacing: '-0.03em' }}>
+                            {currentQuote ? 'Modifier le devis' : 'Nouveau devis'}
+                        </h1>
+                    </div>
+
+                    <div style={{ display: 'grid', gap: '20px' }}>
+                        <div className="card">
+                            <h2 style={{ fontSize: '22px', fontWeight: '600', marginBottom: '16px' }}>Client</h2>
+                            <input
+                                type="text"
+                                value={clientName}
+                                onChange={(e) => setClientName(e.target.value)}
+                                className="input"
+                                placeholder="Nom du client"
+                            />
+                        </div>
+
+                        {selectedItems.length > 0 && (
+                            <div className="card">
+                                <h2 style={{ fontSize: '22px', fontWeight: '600', marginBottom: '16px' }}>
+                                    Panier ({selectedItems.length})
+                                </h2>
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                                    {selectedItems.map(item => (
+                                        <div key={item.id} style={{
+                                            display: 'flex',
+                                            justifyContent: 'space-between',
+                                            alignItems: 'center',
+                                            padding: '16px',
+                                            background: 'var(--bg-tertiary)',
+                                            borderRadius: '12px'
+                                        }}>
+                                            <div>
+                                                <div style={{ fontWeight: '600', marginBottom: '4px' }}>{item.name}</div>
+                                                <div style={{ color: 'var(--text-secondary)', fontSize: '14px' }}>
+                                                    {item.quantity} x {item.price} €
+                                                </div>
+                                            </div>
+                                            <div style={{ fontSize: '20px', fontWeight: '700', color: 'var(--primary)' }}>
+                                                {(item.price * item.quantity).toFixed(2)} €
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                                <div className="divider" />
+                                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '24px', fontWeight: '700' }}>
+                                    <span>Total</span>
+                                    <span className="gradient-text">{total.toFixed(2)} €</span>
+                                </div>
+                                <div style={{ display: 'flex', gap: '12px', marginTop: '16px' }}>
+                                    <button onClick={saveQuote} className="btn btn-primary" style={{ flex: 1 }}>
+                                        💾 Enregistrer
+                                    </button>
+                                    <button onClick={generatePDF} className="btn btn-secondary" style={{ flex: 1 }}>
+                                        📄 PDF
+                                    </button>
+                                </div>
+                            </div>
+                        )}
+
+                        <div className="card">
+                            <h2 style={{ fontSize: '22px', fontWeight: '600', marginBottom: '16px' }}>Produits disponibles</h2>
+                            <div className="product-grid">
+                                {products.slice(0, 20).map(product => (
+                                    <div
+                                        key={product.id}
+                                        className="product-card"
+                                        onClick={() => {
+                                            const existing = selectedItems.find(i => i.id === product.id);
+                                            if (existing) {
+                                                setSelectedItems(selectedItems.map(i =>
+                                                    i.id === product.id ? { ...i, quantity: i.quantity + 1 } : i
+                                                ));
+                                            } else {
+                                                setSelectedItems([...selectedItems, { ...product, quantity: 1 }]);
+                                            }
+                                        }}
+                                    >
+                                        <div className="badge badge-primary" style={{ marginBottom: '8px' }}>
+                                            {product.category}
+                                        </div>
+                                        <h3 style={{ fontSize: '17px', fontWeight: '600', marginBottom: '4px' }}>
+                                            {product.name}
+                                        </h3>
+                                        <p style={{ color: 'var(--text-secondary)', fontSize: '14px', marginBottom: '12px' }}>
+                                            {product.description}
+                                        </p>
+                                        <div style={{ fontSize: '22px', fontWeight: '700', color: 'var(--primary)' }}>
+                                            {product.price} €
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+
+        ReactDOM.render(<App />, document.getElementById('root'));
+    </script>
+</body>
+</html>
