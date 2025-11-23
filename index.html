@@ -6,7 +6,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#1e3a8a">
-    <title>Foloneo - Générateur de Devis</title>
+    <title>Foloneo - Générateur de Devis Pro</title>
     <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect fill='%231e3a8a' width='100' height='100'/><text y='75' font-size='80' fill='white' font-family='Arial'>F</text></svg>">
     <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
@@ -24,10 +24,6 @@
             font-family: 'Inter', sans-serif;
             -webkit-font-smoothing: antialiased;
             overscroll-behavior: none;
-        }
-        
-        .gradient-bg {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         }
         
         .foloneo-gradient {
@@ -48,12 +44,45 @@
             }
         }
 
-        .modal-overlay {
-            background-color: rgba(0, 0, 0, 0.5);
+        .mobile-menu {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: white;
+            border-top: 1px solid #e5e7eb;
+            padding: 8px 0;
+            z-index: 50;
+            box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
         }
 
-        .dropdown-menu {
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        @media (min-width: 769px) {
+            .mobile-menu {
+                display: none;
+            }
+        }
+
+        .content-with-mobile-menu {
+            padding-bottom: 80px;
+        }
+
+        .back-button {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            background: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 0.5rem;
+            color: #374151;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .back-button:hover {
+            background: #f9fafb;
+            border-color: #d1d5db;
         }
     </style>
 </head>
@@ -63,30 +92,67 @@
     <script type="text/babel">
         const { useState, useEffect } = React;
 
-        // Initialiser les données utilisateurs
-        const initializeUsers = () => {
-            const stored = localStorage.getItem('foloneo_users');
-            if (!stored) {
-                const defaultUsers = [
-                    {
-                        id: '1',
-                        username: 'admin',
-                        password: 'admin123',
-                        email: 'admin@foloneo.fr',
-                        role: 'admin',
-                        active: true,
-                        createdAt: new Date().toISOString()
-                    }
-                ];
+        // Données produits Ajax
+        const ajaxProducts = [
+            { id: 'ajax1', name: 'Hub 2 Plus', category: 'Centrales', price: 329, description: 'Centrale principale avec 4G et Ethernet' },
+            { id: 'ajax2', name: 'Hub 2', category: 'Centrales', price: 249, description: 'Centrale avec 2G et Ethernet' },
+            { id: 'ajax3', name: 'MotionProtect', category: 'Détecteurs', price: 79, description: 'Détecteur de mouvement sans fil' },
+            { id: 'ajax4', name: 'MotionProtect Plus', category: 'Détecteurs', price: 99, description: 'Détecteur avec immunité aux animaux' },
+            { id: 'ajax5', name: 'DoorProtect', category: 'Détecteurs', price: 49, description: 'Détecteur d\'ouverture sans fil' },
+            { id: 'ajax6', name: 'FireProtect 2', category: 'Détecteurs', price: 89, description: 'Détecteur de fumée et température' },
+            { id: 'ajax7', name: 'HomeSiren', category: 'Sirènes', price: 119, description: 'Sirène intérieure 105dB' },
+            { id: 'ajax8', name: 'StreetSiren', category: 'Sirènes', price: 179, description: 'Sirène extérieure 113dB' },
+            { id: 'ajax9', name: 'KeyPad Plus', category: 'Commandes', price: 129, description: 'Clavier tactile avec lecteur de badge' },
+            { id: 'ajax10', name: 'SpaceControl', category: 'Commandes', price: 49, description: 'Télécommande 4 boutons' }
+        ];
+
+        // Données produits Dahua
+        const dahuaProducts = [
+            { id: 'dahua1', name: 'NVR 4 canaux', category: 'Enregistreurs', price: 299, description: 'Enregistreur 4K, 4 caméras IP' },
+            { id: 'dahua2', name: 'NVR 8 canaux', category: 'Enregistreurs', price: 449, description: 'Enregistreur 4K, 8 caméras IP' },
+            { id: 'dahua3', name: 'Caméra Dôme 4MP', category: 'Caméras', price: 159, description: 'Caméra dôme intérieure/extérieure 4MP' },
+            { id: 'dahua4', name: 'Caméra Tube 4MP', category: 'Caméras', price: 179, description: 'Caméra tube IR 30m, 4MP' },
+            { id: 'dahua5', name: 'Caméra PTZ 2MP', category: 'Caméras', price: 599, description: 'Caméra motorisée zoom x20' },
+            { id: 'dahua6', name: 'Disque dur 2To', category: 'Accessoires', price: 89, description: 'HDD surveillance 2To' },
+            { id: 'dahua7', name: 'Switch PoE 8 ports', category: 'Accessoires', price: 149, description: 'Switch avec alimentation PoE' },
+            { id: 'dahua8', name: 'Écran 22" LED', category: 'Accessoires', price: 199, description: 'Moniteur Full HD pour surveillance' }
+        ];
+
+        // Initialisation des données
+        const initializeData = () => {
+            // Utilisateurs
+            if (!localStorage.getItem('foloneo_users')) {
+                const defaultUsers = [{
+                    id: '1',
+                    username: 'admin',
+                    password: 'admin123',
+                    email: 'admin@foloneo.fr',
+                    role: 'admin',
+                    active: true,
+                    createdAt: new Date().toISOString()
+                }];
                 localStorage.setItem('foloneo_users', JSON.stringify(defaultUsers));
-                return defaultUsers;
             }
-            return JSON.parse(stored);
+
+            // Produits Ajax
+            if (!localStorage.getItem('foloneo_ajax_products')) {
+                localStorage.setItem('foloneo_ajax_products', JSON.stringify(ajaxProducts));
+            }
+
+            // Produits Dahua
+            if (!localStorage.getItem('foloneo_dahua_products')) {
+                localStorage.setItem('foloneo_dahua_products', JSON.stringify(dahuaProducts));
+            }
+
+            // Devis
+            if (!localStorage.getItem('foloneo_quotes')) {
+                localStorage.setItem('foloneo_quotes', JSON.stringify([]));
+            }
         };
 
-        // Composant de connexion
+        // Écran de connexion
         function LoginScreen({ onLogin }) {
-            const [mode, setMode] = useState('login'); // 'login', 'register', 'forgot'
+            const [mode, setMode] = useState('login');
             const [username, setUsername] = useState('');
             const [password, setPassword] = useState('');
             const [email, setEmail] = useState('');
@@ -98,7 +164,7 @@
                 e.preventDefault();
                 setError('');
                 
-                const users = initializeUsers();
+                const users = JSON.parse(localStorage.getItem('foloneo_users') || '[]');
                 const user = users.find(u => u.username.toLowerCase() === username.toLowerCase());
                 
                 if (!user) {
@@ -112,7 +178,7 @@
                 }
                 
                 if (!user.active) {
-                    setError('Compte désactivé. Contactez l\'administrateur.');
+                    setError('Compte désactivé');
                     return;
                 }
                 
@@ -136,27 +202,22 @@
                 }
 
                 if (password.length < 6) {
-                    setError('Le mot de passe doit contenir au moins 6 caractères');
+                    setError('Minimum 6 caractères');
                     return;
                 }
 
-                const users = initializeUsers();
+                const users = JSON.parse(localStorage.getItem('foloneo_users') || '[]');
                 
                 if (users.find(u => u.username.toLowerCase() === username.toLowerCase())) {
-                    setError('Cet identifiant existe déjà');
-                    return;
-                }
-
-                if (users.find(u => u.email.toLowerCase() === email.toLowerCase())) {
-                    setError('Cet email est déjà utilisé');
+                    setError('Identifiant déjà utilisé');
                     return;
                 }
 
                 const newUser = {
                     id: Date.now().toString(),
-                    username: username,
-                    password: password,
-                    email: email,
+                    username,
+                    password,
+                    email,
                     role: 'user',
                     active: true,
                     createdAt: new Date().toISOString()
@@ -165,33 +226,12 @@
                 users.push(newUser);
                 localStorage.setItem('foloneo_users', JSON.stringify(users));
                 
-                setSuccess('Compte créé avec succès ! Vous pouvez maintenant vous connecter.');
+                setSuccess('Compte créé ! Connexion...');
                 setTimeout(() => {
                     setMode('login');
                     setUsername(newUser.username);
                     setPassword('');
-                }, 2000);
-            };
-
-            const handleForgotPassword = (e) => {
-                e.preventDefault();
-                setError('');
-                setSuccess('');
-
-                if (!email) {
-                    setError('Veuillez entrer votre email');
-                    return;
-                }
-
-                const users = initializeUsers();
-                const user = users.find(u => u.email.toLowerCase() === email.toLowerCase());
-
-                if (!user) {
-                    setError('Aucun compte trouvé avec cet email');
-                    return;
-                }
-
-                setSuccess(`Instructions envoyées à ${email}. Pour cette démo, votre mot de passe est: ${user.password}`);
+                }, 1500);
             };
 
             return (
@@ -203,41 +243,33 @@
                             </div>
                             <h1 className="text-3xl font-bold text-gray-800">Foloneo</h1>
                             <p className="text-gray-600">
-                                {mode === 'login' && 'Générateur de Devis'}
-                                {mode === 'register' && 'Créer un compte'}
-                                {mode === 'forgot' && 'Mot de passe oublié'}
+                                {mode === 'login' ? 'Générateur de Devis Pro' : 'Créer un compte'}
                             </p>
                         </div>
 
                         {mode === 'login' && (
                             <form onSubmit={handleLogin} className="space-y-6">
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                                        Identifiant
-                                    </label>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">Identifiant</label>
                                     <input
                                         type="text"
                                         value={username}
                                         onChange={(e) => setUsername(e.target.value)}
-                                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+                                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
                                         placeholder="Votre identifiant"
                                         required
-                                        autoComplete="username"
                                     />
                                 </div>
 
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                                        Mot de passe
-                                    </label>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">Mot de passe</label>
                                     <input
                                         type="password"
                                         value={password}
                                         onChange={(e) => setPassword(e.target.value)}
-                                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+                                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
                                         placeholder="Votre mot de passe"
                                         required
-                                        autoComplete="current-password"
                                     />
                                 </div>
 
@@ -255,39 +287,19 @@
 
                                 <button
                                     type="submit"
-                                    className="w-full bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition duration-200 mobile-optimized"
+                                    className="w-full bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition mobile-optimized"
                                 >
                                     Se connecter
                                 </button>
 
-                                <div className="text-center space-y-2">
+                                <div className="text-center">
                                     <button
                                         type="button"
-                                        onClick={() => setMode('forgot')}
+                                        onClick={() => setMode('register')}
                                         className="text-blue-600 text-sm hover:underline"
                                     >
-                                        Mot de passe oublié ?
+                                        Créer un compte
                                     </button>
-                                    <div className="text-gray-600 text-sm">
-                                        Pas encore de compte ?{' '}
-                                        <button
-                                            type="button"
-                                            onClick={() => setMode('register')}
-                                            className="text-blue-600 font-semibold hover:underline"
-                                        >
-                                            Créer un compte
-                                        </button>
-                                    </div>
-                                </div>
-
-                                <div className="mt-6 pt-6 border-t border-gray-200">
-                                    <div className="bg-blue-50 p-4 rounded-lg">
-                                        <p className="text-sm font-semibold text-blue-900 mb-2">Compte démo :</p>
-                                        <p className="text-sm text-blue-700">
-                                            <strong>Identifiant:</strong> admin<br/>
-                                            <strong>Mot de passe:</strong> admin123
-                                        </p>
-                                    </div>
                                 </div>
                             </form>
                         )}
@@ -295,57 +307,45 @@
                         {mode === 'register' && (
                             <form onSubmit={handleRegister} className="space-y-6">
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                                        Identifiant
-                                    </label>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">Identifiant</label>
                                     <input
                                         type="text"
                                         value={username}
                                         onChange={(e) => setUsername(e.target.value)}
-                                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
-                                        placeholder="Choisissez un identifiant"
+                                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
                                         required
                                     />
                                 </div>
 
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                                        Email
-                                    </label>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">Email</label>
                                     <input
                                         type="email"
                                         value={email}
                                         onChange={(e) => setEmail(e.target.value)}
-                                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
-                                        placeholder="votre@email.com"
+                                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
                                         required
                                     />
                                 </div>
 
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                                        Mot de passe
-                                    </label>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">Mot de passe</label>
                                     <input
                                         type="password"
                                         value={password}
                                         onChange={(e) => setPassword(e.target.value)}
-                                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
-                                        placeholder="Minimum 6 caractères"
+                                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
                                         required
                                     />
                                 </div>
 
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                                        Confirmer le mot de passe
-                                    </label>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">Confirmer</label>
                                     <input
                                         type="password"
                                         value={confirmPassword}
                                         onChange={(e) => setConfirmPassword(e.target.value)}
-                                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
-                                        placeholder="Confirmez votre mot de passe"
+                                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
                                         required
                                     />
                                 </div>
@@ -364,7 +364,7 @@
 
                                 <button
                                     type="submit"
-                                    className="w-full bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition duration-200 mobile-optimized"
+                                    className="w-full bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition"
                                 >
                                     Créer mon compte
                                 </button>
@@ -380,73 +380,537 @@
                                 </div>
                             </form>
                         )}
-
-                        {mode === 'forgot' && (
-                            <form onSubmit={handleForgotPassword} className="space-y-6">
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                                        Email
-                                    </label>
-                                    <input
-                                        type="email"
-                                        value={email}
-                                        onChange={(e) => setEmail(e.target.value)}
-                                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
-                                        placeholder="votre@email.com"
-                                        required
-                                    />
-                                </div>
-
-                                {error && (
-                                    <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
-                                        {error}
-                                    </div>
-                                )}
-
-                                {success && (
-                                    <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg text-sm whitespace-pre-line">
-                                        {success}
-                                    </div>
-                                )}
-
-                                <button
-                                    type="submit"
-                                    className="w-full bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition duration-200 mobile-optimized"
-                                >
-                                    Récupérer mon mot de passe
-                                </button>
-
-                                <div className="text-center">
-                                    <button
-                                        type="button"
-                                        onClick={() => setMode('login')}
-                                        className="text-blue-600 text-sm hover:underline"
-                                    >
-                                        ← Retour à la connexion
-                                    </button>
-                                </div>
-                            </form>
-                        )}
                     </div>
                 </div>
             );
         }
 
-        // Application principale (simplifiée pour le test)
-        function App() {
-            const [currentUser, setCurrentUser] = useState(null);
-            const [showUserMenu, setShowUserMenu] = useState(false);
+        // Dashboard
+        function Dashboard({ quotes }) {
+            const totalQuotes = quotes.length;
+            const totalRevenue = quotes.reduce((sum, q) => sum + q.total, 0);
+            const avgQuote = totalQuotes > 0 ? totalRevenue / totalQuotes : 0;
+
+            return (
+                <div className="space-y-6">
+                    <h2 className="text-2xl font-bold text-gray-800">📊 Tableau de bord</h2>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div className="bg-white p-6 rounded-xl shadow-lg border-l-4 border-blue-500">
+                            <div className="text-sm text-gray-600 mb-1">Total Devis</div>
+                            <div className="text-3xl font-bold text-gray-800">{totalQuotes}</div>
+                        </div>
+                        
+                        <div className="bg-white p-6 rounded-xl shadow-lg border-l-4 border-green-500">
+                            <div className="text-sm text-gray-600 mb-1">Chiffre d'affaires</div>
+                            <div className="text-3xl font-bold text-gray-800">{totalRevenue.toFixed(0)} €</div>
+                        </div>
+                        
+                        <div className="bg-white p-6 rounded-xl shadow-lg border-l-4 border-purple-500">
+                            <div className="text-sm text-gray-600 mb-1">Devis moyen</div>
+                            <div className="text-3xl font-bold text-gray-800">{avgQuote.toFixed(0)} €</div>
+                        </div>
+                    </div>
+
+                    {quotes.length > 0 ? (
+                        <div className="bg-white p-6 rounded-xl shadow-lg">
+                            <h3 className="text-lg font-bold text-gray-800 mb-4">📋 Derniers devis</h3>
+                            <div className="space-y-3">
+                                {quotes.slice(-5).reverse().map(quote => (
+                                    <div key={quote.id} className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
+                                        <div>
+                                            <div className="font-semibold text-gray-800">{quote.clientName}</div>
+                                            <div className="text-sm text-gray-600">{new Date(quote.date).toLocaleDateString('fr-FR')}</div>
+                                        </div>
+                                        <div className="text-lg font-bold text-blue-600">{quote.total.toFixed(2)} €</div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    ) : (
+                        <div className="bg-white p-6 rounded-xl shadow-lg text-center">
+                            <div className="text-6xl mb-4">📝</div>
+                            <h3 className="text-lg font-bold text-gray-800 mb-2">Aucun devis pour le moment</h3>
+                            <p className="text-gray-600">Créez votre premier devis pour commencer !</p>
+                        </div>
+                    )}
+                </div>
+            );
+        }
+
+        // Création de devis
+        function QuoteCreator({ ajaxProducts, dahuaProducts, onSave, onBack }) {
+            const [clientName, setClientName] = useState('');
+            const [clientAddress, setClientAddress] = useState('');
+            const [clientPhone, setClientPhone] = useState('');
+            const [cart, setCart] = useState([]);
+            const [discount, setDiscount] = useState(0);
+            const [activeTab, setActiveTab] = useState('ajax');
+
+            const products = activeTab === 'ajax' ? ajaxProducts : dahuaProducts;
+
+            const addToCart = (product) => {
+                const existing = cart.find(item => item.id === product.id);
+                if (existing) {
+                    setCart(cart.map(item => 
+                        item.id === product.id ? {...item, quantity: item.quantity + 1} : item
+                    ));
+                } else {
+                    setCart([...cart, {...product, quantity: 1}]);
+                }
+            };
+
+            const updateQuantity = (id, quantity) => {
+                if (quantity <= 0) {
+                    setCart(cart.filter(item => item.id !== id));
+                } else {
+                    setCart(cart.map(item => 
+                        item.id === id ? {...item, quantity} : item
+                    ));
+                }
+            };
+
+            const subtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+            const discountAmount = subtotal * (discount / 100);
+            const total = subtotal - discountAmount;
+
+            const handleSave = () => {
+                if (!clientName) {
+                    alert('Veuillez entrer le nom du client');
+                    return;
+                }
+                if (cart.length === 0) {
+                    alert('Ajoutez des produits au devis');
+                    return;
+                }
+
+                const quote = {
+                    id: Date.now().toString(),
+                    date: new Date().toISOString(),
+                    clientName,
+                    clientAddress,
+                    clientPhone,
+                    items: cart,
+                    subtotal,
+                    discount,
+                    discountAmount,
+                    total
+                };
+
+                onSave(quote);
+                
+                // Reset
+                setClientName('');
+                setClientAddress('');
+                setClientPhone('');
+                setCart([]);
+                setDiscount(0);
+            };
+
+            return (
+                <div className="space-y-6">
+                    <div className="flex items-center justify-between">
+                        <h2 className="text-2xl font-bold text-gray-800">📝 Nouveau Devis</h2>
+                        <button onClick={onBack} className="back-button">
+                            ← Retour
+                        </button>
+                    </div>
+
+                    {/* Infos client */}
+                    <div className="bg-white p-6 rounded-xl shadow-lg">
+                        <h3 className="text-lg font-bold text-gray-800 mb-4">👤 Informations Client</h3>
+                        <div className="space-y-4">
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">Nom du client *</label>
+                                <input
+                                    type="text"
+                                    value={clientName}
+                                    onChange={(e) => setClientName(e.target.value)}
+                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-blue-500"
+                                    placeholder="Nom complet"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">Adresse</label>
+                                <input
+                                    type="text"
+                                    value={clientAddress}
+                                    onChange={(e) => setClientAddress(e.target.value)}
+                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-blue-500"
+                                    placeholder="Adresse complète"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">Téléphone</label>
+                                <input
+                                    type="tel"
+                                    value={clientPhone}
+                                    onChange={(e) => setClientPhone(e.target.value)}
+                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-blue-500"
+                                    placeholder="06 12 34 56 78"
+                                />
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Sélection produits */}
+                    <div className="bg-white p-6 rounded-xl shadow-lg">
+                        <h3 className="text-lg font-bold text-gray-800 mb-4">🛒 Produits</h3>
+                        
+                        <div className="flex space-x-2 mb-4">
+                            <button
+                                onClick={() => setActiveTab('ajax')}
+                                className={`flex-1 py-2 px-4 rounded-lg font-semibold transition ${
+                                    activeTab === 'ajax' 
+                                    ? 'bg-blue-600 text-white' 
+                                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                                }`}
+                            >
+                                Ajax System
+                            </button>
+                            <button
+                                onClick={() => setActiveTab('dahua')}
+                                className={`flex-1 py-2 px-4 rounded-lg font-semibold transition ${
+                                    activeTab === 'dahua' 
+                                    ? 'bg-blue-600 text-white' 
+                                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                                }`}
+                            >
+                                Dahua
+                            </button>
+                        </div>
+
+                        <div className="space-y-2 max-h-64 overflow-y-auto">
+                            {products.map(product => (
+                                <div key={product.id} className="flex justify-between items-center p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition">
+                                    <div className="flex-1">
+                                        <div className="font-semibold text-gray-800">{product.name}</div>
+                                        <div className="text-sm text-gray-600">{product.description}</div>
+                                        <div className="text-sm font-bold text-blue-600">{product.price} €</div>
+                                    </div>
+                                    <button
+                                        onClick={() => addToCart(product)}
+                                        className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition mobile-optimized"
+                                    >
+                                        +
+                                    </button>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+
+                    {/* Panier */}
+                    {cart.length > 0 && (
+                        <div className="bg-white p-6 rounded-xl shadow-lg">
+                            <h3 className="text-lg font-bold text-gray-800 mb-4">🛍️ Panier ({cart.length})</h3>
+                            <div className="space-y-3">
+                                {cart.map(item => (
+                                    <div key={item.id} className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
+                                        <div className="flex-1">
+                                            <div className="font-semibold text-gray-800">{item.name}</div>
+                                            <div className="text-sm text-gray-600">{item.price} € × {item.quantity}</div>
+                                        </div>
+                                        <div className="flex items-center space-x-2">
+                                            <button
+                                                onClick={() => updateQuantity(item.id, item.quantity - 1)}
+                                                className="w-8 h-8 bg-gray-200 rounded-lg hover:bg-gray-300 font-bold"
+                                            >
+                                                -
+                                            </button>
+                                            <span className="w-8 text-center font-bold">{item.quantity}</span>
+                                            <button
+                                                onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                                                className="w-8 h-8 bg-gray-200 rounded-lg hover:bg-gray-300 font-bold"
+                                            >
+                                                +
+                                            </button>
+                                            <div className="w-20 text-right font-bold text-blue-600">
+                                                {(item.price * item.quantity).toFixed(2)} €
+                                            </div>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+
+                            <div className="mt-6 space-y-3 border-t pt-4">
+                                <div className="flex items-center space-x-3">
+                                    <label className="text-sm font-medium text-gray-700">Remise %</label>
+                                    <input
+                                        type="number"
+                                        value={discount}
+                                        onChange={(e) => setDiscount(Math.max(0, Math.min(100, Number(e.target.value))))}
+                                        className="w-24 px-3 py-2 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-blue-500"
+                                        min="0"
+                                        max="100"
+                                    />
+                                </div>
+                                
+                                <div className="flex justify-between text-gray-700">
+                                    <span>Sous-total:</span>
+                                    <span className="font-semibold">{subtotal.toFixed(2)} €</span>
+                                </div>
+                                
+                                {discount > 0 && (
+                                    <div className="flex justify-between text-red-600">
+                                        <span>Remise ({discount}%):</span>
+                                        <span className="font-semibold">-{discountAmount.toFixed(2)} €</span>
+                                    </div>
+                                )}
+                                
+                                <div className="flex justify-between text-xl font-bold text-gray-800 border-t pt-3">
+                                    <span>TOTAL:</span>
+                                    <span className="text-blue-600">{total.toFixed(2)} €</span>
+                                </div>
+                            </div>
+
+                            <button
+                                onClick={handleSave}
+                                className="w-full mt-6 bg-green-600 text-white py-3 rounded-lg font-semibold hover:bg-green-700 transition mobile-optimized"
+                            >
+                                💾 Enregistrer le devis
+                            </button>
+                        </div>
+                    )}
+                </div>
+            );
+        }
+
+        // Gestion produits
+        function ProductsManager({ ajaxProducts, dahuaProducts, onUpdate, onBack }) {
+            const [activeTab, setActiveTab] = useState('ajax');
+            const [editingId, setEditingId] = useState(null);
+            const [editForm, setEditForm] = useState({});
+
+            const products = activeTab === 'ajax' ? ajaxProducts : dahuaProducts;
+
+            const startEdit = (product) => {
+                setEditingId(product.id);
+                setEditForm({...product});
+            };
+
+            const saveEdit = () => {
+                const key = activeTab === 'ajax' ? 'foloneo_ajax_products' : 'foloneo_dahua_products';
+                const allProducts = JSON.parse(localStorage.getItem(key) || '[]');
+                const updated = allProducts.map(p => p.id === editingId ? editForm : p);
+                localStorage.setItem(key, JSON.stringify(updated));
+                onUpdate();
+                setEditingId(null);
+            };
+
+            return (
+                <div className="space-y-6">
+                    <div className="flex items-center justify-between">
+                        <h2 className="text-2xl font-bold text-gray-800">📦 Gestion des Produits</h2>
+                        <button onClick={onBack} className="back-button">
+                            ← Retour
+                        </button>
+                    </div>
+
+                    <div className="flex space-x-2">
+                        <button
+                            onClick={() => setActiveTab('ajax')}
+                            className={`flex-1 py-2 px-4 rounded-lg font-semibold ${
+                                activeTab === 'ajax' ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-700'
+                            }`}
+                        >
+                            Ajax ({ajaxProducts.length})
+                        </button>
+                        <button
+                            onClick={() => setActiveTab('dahua')}
+                            className={`flex-1 py-2 px-4 rounded-lg font-semibold ${
+                                activeTab === 'dahua' ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-700'
+                            }`}
+                        >
+                            Dahua ({dahuaProducts.length})
+                        </button>
+                    </div>
+
+                    <div className="space-y-3">
+                        {products.map(product => (
+                            <div key={product.id} className="bg-white p-4 rounded-xl shadow-lg">
+                                {editingId === product.id ? (
+                                    <div className="space-y-3">
+                                        <input
+                                            type="text"
+                                            value={editForm.name}
+                                            onChange={(e) => setEditForm({...editForm, name: e.target.value})}
+                                            className="w-full px-3 py-2 border rounded-lg"
+                                            placeholder="Nom"
+                                        />
+                                        <input
+                                            type="text"
+                                            value={editForm.description}
+                                            onChange={(e) => setEditForm({...editForm, description: e.target.value})}
+                                            className="w-full px-3 py-2 border rounded-lg"
+                                            placeholder="Description"
+                                        />
+                                        <input
+                                            type="number"
+                                            value={editForm.price}
+                                            onChange={(e) => setEditForm({...editForm, price: Number(e.target.value)})}
+                                            className="w-full px-3 py-2 border rounded-lg"
+                                            placeholder="Prix"
+                                        />
+                                        <div className="flex space-x-2">
+                                            <button
+                                                onClick={saveEdit}
+                                                className="flex-1 bg-green-600 text-white py-2 rounded-lg"
+                                            >
+                                                ✓ Sauvegarder
+                                            </button>
+                                            <button
+                                                onClick={() => setEditingId(null)}
+                                                className="flex-1 bg-gray-300 text-gray-700 py-2 rounded-lg"
+                                            >
+                                                ✗ Annuler
+                                            </button>
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <div className="flex justify-between items-center">
+                                        <div>
+                                            <div className="font-bold text-gray-800">{product.name}</div>
+                                            <div className="text-sm text-gray-600">{product.description}</div>
+                                            <div className="text-sm font-bold text-blue-600">{product.price} €</div>
+                                        </div>
+                                        <button
+                                            onClick={() => startEdit(product)}
+                                            className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
+                                        >
+                                            ✏️ Modifier
+                                        </button>
+                                    </div>
+                                )}
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            );
+        }
+
+        // Gestion utilisateurs (Admin)
+        function UsersManager({ currentUser, onBack }) {
+            const [users, setUsers] = useState([]);
 
             useEffect(() => {
+                loadUsers();
+            }, []);
+
+            const loadUsers = () => {
+                const data = JSON.parse(localStorage.getItem('foloneo_users') || '[]');
+                setUsers(data);
+            };
+
+            const toggleActive = (userId) => {
+                const updated = users.map(u => 
+                    u.id === userId ? {...u, active: !u.active} : u
+                );
+                localStorage.setItem('foloneo_users', JSON.stringify(updated));
+                setUsers(updated);
+            };
+
+            if (currentUser.role !== 'admin') {
+                return (
+                    <div className="space-y-6">
+                        <div className="flex items-center justify-between">
+                            <h2 className="text-2xl font-bold text-gray-800">👥 Gestion Utilisateurs</h2>
+                            <button onClick={onBack} className="back-button">
+                                ← Retour
+                            </button>
+                        </div>
+                        <div className="bg-white p-6 rounded-xl shadow-lg">
+                            <div className="text-center text-gray-600">
+                                Accès réservé aux administrateurs
+                            </div>
+                        </div>
+                    </div>
+                );
+            }
+
+            return (
+                <div className="space-y-6">
+                    <div className="flex items-center justify-between">
+                        <h2 className="text-2xl font-bold text-gray-800">👥 Gestion Utilisateurs</h2>
+                        <button onClick={onBack} className="back-button">
+                            ← Retour
+                        </button>
+                    </div>
+                    
+                    <div className="space-y-3">
+                        {users.map(user => (
+                            <div key={user.id} className="bg-white p-4 rounded-xl shadow-lg">
+                                <div className="flex justify-between items-center">
+                                    <div>
+                                        <div className="font-bold text-gray-800">
+                                            {user.username}
+                                            {user.role === 'admin' && <span className="ml-2 text-xs bg-purple-100 text-purple-700 px-2 py-1 rounded">ADMIN</span>}
+                                        </div>
+                                        <div className="text-sm text-gray-600">{user.email}</div>
+                                        <div className="text-xs text-gray-500">
+                                            Créé le {new Date(user.createdAt).toLocaleDateString('fr-FR')}
+                                        </div>
+                                    </div>
+                                    {user.id !== '1' && (
+                                        <button
+                                            onClick={() => toggleActive(user.id)}
+                                            className={`px-4 py-2 rounded-lg font-semibold ${
+                                                user.active 
+                                                ? 'bg-green-100 text-green-700' 
+                                                : 'bg-red-100 text-red-700'
+                                            }`}
+                                        >
+                                            {user.active ? '🟢 Actif' : '🔴 Inactif'}
+                                        </button>
+                                    )}
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            );
+        }
+
+        // Application principale
+        function App() {
+            const [currentUser, setCurrentUser] = useState(null);
+            const [currentPage, setCurrentPage] = useState('dashboard');
+            const [showUserMenu, setShowUserMenu] = useState(false);
+            const [ajaxProducts, setAjaxProducts] = useState([]);
+            const [dahuaProducts, setDahuaProducts] = useState([]);
+            const [quotes, setQuotes] = useState([]);
+
+            useEffect(() => {
+                initializeData();
                 const stored = localStorage.getItem('foloneo_current_user');
                 if (stored) {
                     setCurrentUser(JSON.parse(stored));
                 }
+                loadData();
             }, []);
+
+            const loadData = () => {
+                setAjaxProducts(JSON.parse(localStorage.getItem('foloneo_ajax_products') || '[]'));
+                setDahuaProducts(JSON.parse(localStorage.getItem('foloneo_dahua_products') || '[]'));
+                setQuotes(JSON.parse(localStorage.getItem('foloneo_quotes') || '[]'));
+            };
 
             const handleLogout = () => {
                 localStorage.removeItem('foloneo_current_user');
                 setCurrentUser(null);
+                setShowUserMenu(false);
+            };
+
+            const saveQuote = (quote) => {
+                const allQuotes = JSON.parse(localStorage.getItem('foloneo_quotes') || '[]');
+                allQuotes.push(quote);
+                localStorage.setItem('foloneo_quotes', JSON.stringify(allQuotes));
+                setQuotes(allQuotes);
+                setCurrentPage('dashboard');
+                alert('✅ Devis enregistré avec succès !');
+            };
+
+            const goToDashboard = () => {
+                setCurrentPage('dashboard');
             };
 
             if (!currentUser) {
@@ -456,19 +920,18 @@
             return (
                 <div className="min-h-screen bg-gray-50">
                     {/* Header */}
-                    <div className="foloneo-gradient text-white p-4 shadow-lg">
+                    <div className="foloneo-gradient text-white p-4 shadow-lg sticky top-0 z-40">
                         <div className="max-w-7xl mx-auto flex justify-between items-center">
-                            <div className="flex items-center space-x-3">
+                            <div className="flex items-center space-x-3 cursor-pointer" onClick={goToDashboard}>
                                 <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center">
                                     <span className="text-2xl font-bold text-blue-600">F</span>
                                 </div>
                                 <div>
                                     <h1 className="text-xl font-bold">Foloneo</h1>
-                                    <p className="text-sm opacity-90">Générateur de Devis</p>
+                                    <p className="text-sm opacity-90 hide-mobile">Générateur de Devis Pro</p>
                                 </div>
                             </div>
 
-                            {/* Menu utilisateur */}
                             <div className="relative">
                                 <button
                                     onClick={() => setShowUserMenu(!showUserMenu)}
@@ -479,86 +942,75 @@
                                     </div>
                                     <div className="text-left hide-mobile">
                                         <div className="text-sm font-semibold">{currentUser.username}</div>
-                                        <div className="text-xs opacity-75">{currentUser.role === 'admin' ? 'Administrateur' : 'Utilisateur'}</div>
+                                        <div className="text-xs opacity-75">{currentUser.role === 'admin' ? 'Admin' : 'User'}</div>
                                     </div>
                                 </button>
 
                                 {showUserMenu && (
-                                    <div className="absolute right-0 mt-2 w-64 bg-white rounded-lg shadow-xl dropdown-menu z-50">
-                                        <div className="p-4 border-b border-gray-100">
+                                    <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-xl z-50">
+                                        <div className="p-3 border-b">
                                             <div className="font-semibold text-gray-800">{currentUser.username}</div>
-                                            <div className="text-sm text-gray-600">{currentUser.email}</div>
-                                            <div className="text-xs text-blue-600 mt-1">
-                                                {currentUser.role === 'admin' ? '👑 Administrateur' : '👤 Utilisateur'}
-                                            </div>
+                                            <div className="text-xs text-gray-600">{currentUser.email}</div>
                                         </div>
-                                        <div className="p-2">
-                                            <button
-                                                onClick={handleLogout}
-                                                className="w-full text-left px-4 py-2 text-red-600 hover:bg-red-50 rounded-lg transition"
-                                            >
-                                                🚪 Déconnexion
-                                            </button>
-                                        </div>
+                                        <button
+                                            onClick={handleLogout}
+                                            className="w-full text-left px-4 py-2 text-red-600 hover:bg-red-50 rounded-b-lg"
+                                        >
+                                            🚪 Déconnexion
+                                        </button>
                                     </div>
                                 )}
                             </div>
                         </div>
                     </div>
 
-                    {/* Contenu principal */}
-                    <div className="max-w-7xl mx-auto p-6">
-                        <div className="bg-white rounded-xl shadow-lg p-8">
-                            <h2 className="text-2xl font-bold text-gray-800 mb-4">
-                                Bienvenue, {currentUser.username} ! 🎉
-                            </h2>
-                            <div className="space-y-4">
-                                <div className="bg-green-50 border border-green-200 p-6 rounded-lg">
-                                    <div className="flex items-center space-x-3 mb-3">
-                                        <div className="text-4xl">✅</div>
-                                        <div>
-                                            <h3 className="text-xl font-bold text-green-800">Connexion réussie !</h3>
-                                            <p className="text-green-700">Le système d'authentification fonctionne correctement</p>
-                                        </div>
-                                    </div>
-                                </div>
+                    {/* Contenu */}
+                    <div className="max-w-7xl mx-auto p-4 content-with-mobile-menu">
+                        {currentPage === 'dashboard' && <Dashboard quotes={quotes} />}
+                        {currentPage === 'quotes' && <QuoteCreator ajaxProducts={ajaxProducts} dahuaProducts={dahuaProducts} onSave={saveQuote} onBack={goToDashboard} />}
+                        {currentPage === 'products' && <ProductsManager ajaxProducts={ajaxProducts} dahuaProducts={dahuaProducts} onUpdate={loadData} onBack={goToDashboard} />}
+                        {currentPage === 'users' && <UsersManager currentUser={currentUser} onBack={goToDashboard} />}
+                    </div>
 
-                                <div className="bg-blue-50 border border-blue-200 p-6 rounded-lg">
-                                    <h3 className="text-lg font-bold text-blue-900 mb-3">Informations de votre compte :</h3>
-                                    <div className="space-y-2 text-blue-800">
-                                        <p><strong>Identifiant :</strong> {currentUser.username}</p>
-                                        <p><strong>Email :</strong> {currentUser.email}</p>
-                                        <p><strong>Rôle :</strong> {currentUser.role === 'admin' ? 'Administrateur' : 'Utilisateur'}</p>
-                                        <p><strong>Statut :</strong> {currentUser.active ? '🟢 Actif' : '🔴 Inactif'}</p>
-                                        <p><strong>Compte créé le :</strong> {new Date(currentUser.createdAt).toLocaleDateString('fr-FR')}</p>
-                                    </div>
-                                </div>
-
-                                <div className="bg-gray-50 border border-gray-200 p-6 rounded-lg">
-                                    <h3 className="text-lg font-bold text-gray-900 mb-3">📋 Prochaines étapes :</h3>
-                                    <ul className="list-disc list-inside space-y-2 text-gray-700">
-                                        <li>Intégration du module de création de devis</li>
-                                        <li>Gestion des produits Ajax et Dahua</li>
-                                        <li>Génération de PDF professionnels</li>
-                                        <li>Tableau de bord avec statistiques</li>
-                                        <li>Module de gestion des utilisateurs (pour admin)</li>
-                                    </ul>
-                                </div>
-
-                                <div className="bg-yellow-50 border border-yellow-200 p-6 rounded-lg">
-                                    <h3 className="text-lg font-bold text-yellow-900 mb-2">💡 Astuce :</h3>
-                                    <p className="text-yellow-800">
-                                        Cliquez sur votre nom en haut à droite pour accéder au menu utilisateur et vous déconnecter.
-                                    </p>
-                                </div>
-                            </div>
+                    {/* Menu mobile */}
+                    <div className="mobile-menu">
+                        <div className="flex justify-around max-w-7xl mx-auto">
+                            <button
+                                onClick={() => setCurrentPage('dashboard')}
+                                className={`flex flex-col items-center py-2 px-4 ${currentPage === 'dashboard' ? 'text-blue-600' : 'text-gray-600'}`}
+                            >
+                                <span className="text-2xl">📊</span>
+                                <span className="text-xs mt-1">Dashboard</span>
+                            </button>
+                            <button
+                                onClick={() => setCurrentPage('quotes')}
+                                className={`flex flex-col items-center py-2 px-4 ${currentPage === 'quotes' ? 'text-blue-600' : 'text-gray-600'}`}
+                            >
+                                <span className="text-2xl">📝</span>
+                                <span className="text-xs mt-1">Devis</span>
+                            </button>
+                            <button
+                                onClick={() => setCurrentPage('products')}
+                                className={`flex flex-col items-center py-2 px-4 ${currentPage === 'products' ? 'text-blue-600' : 'text-gray-600'}`}
+                            >
+                                <span className="text-2xl">📦</span>
+                                <span className="text-xs mt-1">Produits</span>
+                            </button>
+                            {currentUser.role === 'admin' && (
+                                <button
+                                    onClick={() => setCurrentPage('users')}
+                                    className={`flex flex-col items-center py-2 px-4 ${currentPage === 'users' ? 'text-blue-600' : 'text-gray-600'}`}
+                                >
+                                    <span className="text-2xl">👥</span>
+                                    <span className="text-xs mt-1">Users</span>
+                                </button>
+                            )}
                         </div>
                     </div>
                 </div>
             );
         }
 
-        // Initialiser l'application
         ReactDOM.render(<App />, document.getElementById('root'));
     </script>
 </body>
