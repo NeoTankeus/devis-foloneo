@@ -13,7 +13,7 @@
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
-    <style>
+        <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
         
         * {
@@ -84,6 +84,106 @@
             background: #f9fafb;
             border-color: #d1d5db;
         }
+
+        /* Animations pour le bouton + */
+        @keyframes buttonPulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(0.9); }
+            100% { transform: scale(1); }
+        }
+
+        @keyframes successPulse {
+            0% { transform: scale(1); background-color: #2563eb; }
+            50% { transform: scale(1.1); background-color: #10b981; }
+            100% { transform: scale(1); background-color: #2563eb; }
+        }
+
+        .btn-add-product {
+            transition: all 0.2s ease;
+        }
+
+        .btn-add-product:active {
+            animation: buttonPulse 0.3s ease;
+        }
+
+        .btn-add-product.added {
+            animation: successPulse 0.5s ease;
+        }
+
+        /* Toast notification */
+        .toast-notification {
+            position: fixed;
+            top: 80px;
+            right: 20px;
+            background: #10b981;
+            color: white;
+            padding: 12px 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            z-index: 1000;
+            animation: slideInRight 0.3s ease, slideOutRight 0.3s ease 2.7s;
+        }
+
+        @keyframes slideInRight {
+            from {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes slideOutRight {
+            from {
+                transform: translateX(0);
+                opacity: 1;
+            }
+            to {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+        }
+
+        /* Badge panier avec animation */
+        .cart-badge {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            background: #ef4444;
+            color: white;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: bold;
+            animation: cartBounce 0.5s ease;
+        }
+
+        @keyframes cartBounce {
+            0%, 100% { transform: scale(1); }
+            25% { transform: scale(1.3); }
+            50% { transform: scale(0.9); }
+            75% { transform: scale(1.1); }
+        }
+
+        /* Animation de la ligne de produit ajoutée */
+        @keyframes highlightProduct {
+            0% { background-color: #f3f4f6; }
+            50% { background-color: #d1fae5; }
+            100% { background-color: #f3f4f6; }
+        }
+
+        .product-added {
+            animation: highlightProduct 1s ease;
+        }
     </style>
 </head>
 <body class="bg-gray-50">
@@ -94,16 +194,61 @@
 
         // Données produits Ajax
         const ajaxProducts = [
-            { id: 'ajax1', name: 'Hub 2 Plus', category: 'Centrales', price: 329, description: 'Centrale principale avec 4G et Ethernet' },
-            { id: 'ajax2', name: 'Hub 2', category: 'Centrales', price: 249, description: 'Centrale avec 2G et Ethernet' },
-            { id: 'ajax3', name: 'MotionProtect', category: 'Détecteurs', price: 79, description: 'Détecteur de mouvement sans fil' },
-            { id: 'ajax4', name: 'MotionProtect Plus', category: 'Détecteurs', price: 99, description: 'Détecteur avec immunité aux animaux' },
-            { id: 'ajax5', name: 'DoorProtect', category: 'Détecteurs', price: 49, description: 'Détecteur d\'ouverture sans fil' },
-            { id: 'ajax6', name: 'FireProtect 2', category: 'Détecteurs', price: 89, description: 'Détecteur de fumée et température' },
-            { id: 'ajax7', name: 'HomeSiren', category: 'Sirènes', price: 119, description: 'Sirène intérieure 105dB' },
-            { id: 'ajax8', name: 'StreetSiren', category: 'Sirènes', price: 179, description: 'Sirène extérieure 113dB' },
-            { id: 'ajax9', name: 'KeyPad Plus', category: 'Commandes', price: 129, description: 'Clavier tactile avec lecteur de badge' },
-            { id: 'ajax10', name: 'SpaceControl', category: 'Commandes', price: 49, description: 'Télécommande 4 boutons' }
+            { id: 'ajax1', name: 'Hub', category: 'Centrales', price: 108.09, description: 'Centrale IP-GPRS 2G - Ethernet - Gsm/Gprs  (alimentation et cable ethernet fournie)' },
+            { id: 'ajax2', name: 'Hub 2', category: 'Centrales', price: 151.79, description: 'Centrale IP-GPRS 2G (compatible MotionCam) - Ethernet - Gsm/Gprs  (alimentation et cable ethernet fo...' },
+            { id: 'ajax3', name: 'Hub 2 - 4G', category: 'Centrales', price: 227.13, description: 'Centrale IP-GPRS 4G (compatible MotionCam) - Ethernet - Gsm/Gprs  (alimentation et cable ethernet fo...' },
+            { id: 'ajax4', name: 'Hub 2 Plus', category: 'Centrales', price: 259.4, description: 'Centrale IP-GPRS 2G/3G/4G Compatible MotionCam) - Ethernet -module wifi integré - Gsm/Gprs  (aliment...' },
+            { id: 'ajax5', name: 'DoorProtect', category: 'Détecteurs d\'ouverture', price: 23.9, description: 'Detecteur d\'ouverture  - Deux aimants - CR123A batterie (pré-installée) - 1 entrée contact sec' },
+            { id: 'ajax6', name: 'DoorProtectPlus', category: 'Détecteurs d\'ouverture', price: 35.88, description: 'Detecteur d\'ouverture, de vibration et d\'inclinaison - Deux aimants - CR123A batterie (pré-installée...' },
+            { id: 'ajax7', name: 'MotionProtect', category: 'Détecteurs de mouvement', price: 40.55, description: 'Detecteur infrarouge - Anti animaux - CR123A batterie (pré-installée)' },
+            { id: 'ajax8', name: 'MotionProtect Plus', category: 'Détecteurs de mouvement', price: 55.64, description: 'Detecteur infrarouge double technologie -  Anti animaux - CR123A batterie (pré-installée)' },
+            { id: 'ajax9', name: 'CombiProtect', category: 'Détecteurs de mouvement', price: 56.12, description: 'Detecteur infrarouge et bris de vitre -  Anti animaux - CR123A batterie (pré-installée)' },
+            { id: 'ajax10', name: 'MotionProtect Outdoor', category: 'Détecteurs de mouvement', price: 140.31, description: 'Detecteur infrarouge exterieur          - Double faisceau           - Anti-mask          - Anti anim...' },
+            { id: 'ajax11', name: 'Curtainprotect', category: 'Détecteurs de mouvement', price: 47.27, description: 'Détecteur PIR de type rideau Ajax  Portée de détection configurable de 6 à 15 m' },
+            { id: 'ajax12', name: 'DualCurtain Outdoor', category: 'Détecteurs de mouvement', price: 143.45, description: 'Detecteur infrarouge exterieur rideau          -4 capteurs PIR           - Anti-mask           - det...' },
+            { id: 'ajax13', name: 'Curtain Outdoor Jeweller', category: 'Détecteurs de mouvement', price: 102.6, description: '' },
+            { id: 'ajax14', name: 'MotionCam', category: 'Détecteurs caméra', price: 92.52, description: 'Detecteur infrarouge avec camera - Anti animaux - 2 CR123A batterie (pré-installée)' },
+            { id: 'ajax15', name: 'MotionCam Outdoor', category: 'Détecteurs caméra', price: 172.58, description: 'Detecteur infrarouge caméra exterieur         - Double faisceau              -  Anti Animaux        ...' },
+            { id: 'ajax16', name: 'GlassProtect', category: 'Détecteurs bris de vitre', price: 40.55, description: 'Detecteur de bris de vitre - 1 entrée contact sec - CR123A batterie (pré-installée)' },
+            { id: 'ajax17', name: 'FireProtect', category: 'Détecteurs incendie', price: 47.27, description: 'Detecteur de fumée - capteur de température integré - 2 x piles de CR2032 (préinstallée)' },
+            { id: 'ajax18', name: 'FireProtect Plus', category: 'Détecteurs incendie', price: 72.24, description: 'Detecteur de fumée et CO2 - capteur de température integré - 2 x piles de CR2032 (préinstallée)' },
+            { id: 'ajax19', name: 'LeaksProtect', category: 'Détecteurs inondation', price: 32.22, description: 'Detecteur d\'innondation - Deux piles AAA (préinstallées)' },
+            { id: 'ajax20', name: 'StreetSiren', category: 'Sirènes', price: 176.74, description: 'Sirène exterieure avec flash     - Quatre CR123A batteries (pré-installées)' },
+            { id: 'ajax21', name: 'StreetSirenPlus NFA2P', category: 'Sirènes', price: 137.25, description: 'Sirène exterieure NFA2P avec flash     - Quatre CR123A batteries (pré-installées)' },
+            { id: 'ajax22', name: 'StreetSirencustom', category: 'Sirènes', price: 79.53, description: 'Sirène exterieure avec flash avec couvercle personnalisable     - Quatre CR123A batteries (pré-insta...' },
+            { id: 'ajax23', name: 'HomeSIren', category: 'Sirènes', price: 40.55, description: 'Sirène interieure     - Deux CR123A batteries (pré-installées)' },
+            { id: 'ajax24', name: 'KeyPad', category: 'Claviers', price: 63.93, description: 'Clavier tactile - 4 piles AAA (préinstallées)' },
+            { id: 'ajax25', name: 'KeyPad Plus', category: 'Claviers', price: 81.05, description: 'Clavier tactile avec lecteur de badge - 4 piles AAA (préinstallées)' },
+            { id: 'ajax26', name: 'SpaceControl', category: 'Télécommandes', price: 20.27, description: 'Télécommande 4 boutons bidirectionnelle - CR123A batterie (pré-installée)' },
+            { id: 'ajax27', name: 'Rex / Range extender', category: 'Répéteurs', price: 80.59, description: 'Répéteur radio' },
+            { id: 'ajax28', name: 'Rex 2/ Range extender', category: 'Répéteurs', price: 115.37, description: 'Répéteur radio comptatible photos' },
+            { id: 'ajax29', name: 'WallSwitch', category: 'Relais et modules', price: 28.6, description: 'Relais de controle à distance 110~240v - Compteur de consommation' },
+            { id: 'ajax30', name: 'Relay', category: 'Relais et modules', price: 28.6, description: 'Relais de controle à distance (contact sec) - Entrée d\'alimentation 7~24V' },
+            { id: 'ajax31', name: 'Multitransmitter-3EOL', category: 'Relais et modules', price: 99.81, description: 'Module qui permet l\'intégration au système  Ajax d\'appareils tiers câblés 18 zones' },
+            { id: 'ajax32', name: 'DC12V-PCB2', category: 'Relais et modules', price: 16.08, description: 'Module d\'alimentation 12 VDC Compatible avec Ajax le Hub 2 Tension d\'entrée 8~20 VDC' },
+            { id: 'ajax33', name: 'DC6V-PCB2', category: 'Relais et modules', price: 16.08, description: 'Module d\'alimentation 12 VDC Compatible avec Ajax le Hub 2 et rex 2 Tension d\'entrée 4~20 VDC' },
+            { id: 'ajax34', name: 'Socket', category: 'Relais et modules', price: 49.88, description: 'Prise intelligente connectée' },
+            { id: 'ajax35', name: 'Transmitter', category: 'Relais et modules', price: 32.22, description: 'Transmetteur universel - entrée filaire et autoprotection (accelerometre) - 3 piles CR2032 (préinsta...' },
+            { id: 'ajax36', name: 'Button', category: 'Boutons panic', price: 20.28, description: 'Bouton panic' },
+            { id: 'ajax37', name: 'Doublebutton', category: 'Boutons panic', price: 20.28, description: 'Double Bouton panic' },
+            { id: 'ajax38', name: 'Hood', category: 'Accessoires', price: 7.8, description: 'Casquette de protection pour Motionprotect Outdoor' },
+            { id: 'ajax39', name: 'TAG', category: 'Accessoires', price: 40.55, description: 'Tag d\'accès pour Keypad plus - lot de10' },
+            { id: 'ajax40', name: 'PASS', category: 'Accessoires', price: 37.94, description: 'Pass d\'accès pour Keypad plus - lot de10' },
+            { id: 'ajax41', name: 'DinHolder', category: 'Accessoires', price: 6.0, description: 'Support pour rail Din' },
+            { id: 'ajax42', name: 'Brandplates', category: 'Accessoires', price: 51.98, description: 'Pack de 10 couvercles personnalisable' },
+            { id: 'ajax43', name: 'Holder', category: 'Accessoires', price: 3.66, description: 'Support pour bouton d\'urgence' },
+            { id: 'ajax44', name: 'MB100', category: 'Accessoires', price: 16.2, description: 'Rotule de fixation a fixer sur les MOTIONCAMOUTDOOR' },
+            { id: 'ajax45', name: 'XTO 2.0', category: 'Kits', price: 459.0, description: 'XTO 2.0 KIT CHANTIER - 1 coffret 430x330x200 prepercé avec serrure à monter - 1 centrale Hub2 - 1 mo...' },
+            { id: 'ajax46', name: 'XTO 2.0 - 4G', category: 'Kits', price: 535.5, description: 'XTO 2.0 -4G KIT CHANTIER - 1 coffret 430x330x200 prepercé avec serrure à monter - 1 centrale Hub2 - ...' },
+            { id: 'ajax47', name: 'REX2 XTENDER', category: 'Kits', price: 423.0, description: 'KIT REX2 XTENDER ( pour augmenter la portée radio) - 1 coffret 430x330x200 prepercé avec serrure à m...' },
+            { id: 'ajax48', name: 'COFFRET', category: 'Kits', price: 166.5, description: 'COFFRET SEUL               - 1 coffret 430x330x200 prepercé                                    -  1 ...' },
+            { id: 'ajax49', name: 'PILE 6V 960AH', category: 'Kits', price: 134.1, description: 'PILE 6V 960AH ZINC AIR (a utilisation unique) Autonomie moyenne de 14 mois' },
+            { id: 'ajax50', name: 'Lifequality', category: 'Nouveautés', price: 208.47, description: 'Moniteur de température, humidité et CO2' },
+            { id: 'ajax51', name: 'Lightcore - 1G', category: 'Nouveautés', price: 46.65, description: 'Interrupteur simple' },
+            { id: 'ajax52', name: 'Lightcore - 2G', category: 'Nouveautés', price: 53.78, description: 'Interrupteur double' },
+            { id: 'ajax53', name: 'Lightcore - 2W', category: 'Nouveautés', price: 49.98, description: 'Interrupteur va et vient' },
+            { id: 'ajax54', name: 'SOLOBUTTON - 1G2W', category: 'Nouveautés', price: 8.09, description: 'Panneau tactil pour interrupteur   compatible Lightcore 1G et Lightcore-2W' },
+            { id: 'ajax55', name: 'SOLOBUTTON - 2G', category: 'Nouveautés', price: 9.05, description: 'Panneau tactil pour interrupteur   compatible Lightcore 2G' }
         ];
 
         // Données produits Dahua
@@ -446,17 +591,30 @@
             const [cart, setCart] = useState([]);
             const [discount, setDiscount] = useState(0);
             const [activeTab, setActiveTab] = useState('ajax');
+            const [toast, setToast] = useState(null);
+            const [addedProductId, setAddedProductId] = useState(null);
 
             const products = activeTab === 'ajax' ? ajaxProducts : dahuaProducts;
 
+            const showToast = (productName) => {
+                setToast(productName);
+                setTimeout(() => setToast(null), 3000);
+            };
+
             const addToCart = (product) => {
+                // Animation du bouton
+                setAddedProductId(product.id);
+                setTimeout(() => setAddedProductId(null), 500);
+
                 const existing = cart.find(item => item.id === product.id);
                 if (existing) {
                     setCart(cart.map(item => 
                         item.id === product.id ? {...item, quantity: item.quantity + 1} : item
                     ));
+                    showToast(`${product.name} x${existing.quantity + 1}`);
                 } else {
                     setCart([...cart, {...product, quantity: 1}]);
+                    showToast(`${product.name} ajouté`);
                 }
             };
 
@@ -509,6 +667,14 @@
 
             return (
                 <div className="space-y-6">
+                    {/* Toast notification */}
+                    {toast && (
+                        <div className="toast-notification">
+                            <span className="text-2xl">✓</span>
+                            <span className="font-semibold">{toast}</span>
+                        </div>
+                    )}
+
                     <div className="flex items-center justify-between">
                         <h2 className="text-2xl font-bold text-gray-800">📝 Nouveau Devis</h2>
                         <button onClick={onBack} className="back-button">
@@ -555,7 +721,15 @@
 
                     {/* Sélection produits */}
                     <div className="bg-white p-6 rounded-xl shadow-lg">
-                        <h3 className="text-lg font-bold text-gray-800 mb-4">🛒 Produits</h3>
+                        <div className="flex items-center justify-between mb-4">
+                            <h3 className="text-lg font-bold text-gray-800">🛒 Produits</h3>
+                            {cart.length > 0 && (
+                                <div className="relative">
+                                    <span className="text-2xl">🛒</span>
+                                    <span className="cart-badge">{cart.length}</span>
+                                </div>
+                            )}
+                        </div>
                         
                         <div className="flex space-x-2 mb-4">
                             <button
@@ -582,7 +756,7 @@
 
                         <div className="space-y-2 max-h-64 overflow-y-auto">
                             {products.map(product => (
-                                <div key={product.id} className="flex justify-between items-center p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition">
+                                <div key={product.id} className={`flex justify-between items-center p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition ${addedProductId === product.id ? 'product-added' : ''}`}>
                                     <div className="flex-1">
                                         <div className="font-semibold text-gray-800">{product.name}</div>
                                         <div className="text-sm text-gray-600">{product.description}</div>
@@ -590,7 +764,7 @@
                                     </div>
                                     <button
                                         onClick={() => addToCart(product)}
-                                        className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition mobile-optimized"
+                                        className={`btn-add-product bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition mobile-optimized font-bold text-lg ${addedProductId === product.id ? 'added' : ''}`}
                                     >
                                         +
                                     </button>
