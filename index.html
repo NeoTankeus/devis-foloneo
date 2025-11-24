@@ -4,527 +4,206 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="theme-color" content="#1e3a8a">
-    <title>Foloneo - Générateur de Devis Pro</title>
-    <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect fill='%231e3a8a' width='100' height='100'/><text y='75' font-size='80' fill='white' font-family='Arial'>F</text></svg>">
+    <meta name="theme-color" content="#0f172a">
+    <title>Foloneo Pro - Générateur de Devis Commercial</title>
     <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
-        <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
-        
-        * {
-            -webkit-tap-highlight-color: transparent;
-        }
-        
-        body {
-            font-family: 'Inter', sans-serif;
-            -webkit-font-smoothing: antialiased;
-            overscroll-behavior: none;
-        }
-        
-        .foloneo-gradient {
-            background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
-        }
-
-        input, select, textarea, button {
-            font-size: 16px;
-        }
-
-        .mobile-optimized {
-            touch-action: manipulation;
-        }
-
-        @media (max-width: 768px) {
-            .hide-mobile {
-                display: none;
-            }
-        }
-
-        .mobile-menu {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            background: white;
-            border-top: 1px solid #e5e7eb;
-            padding: 8px 0;
-            z-index: 50;
-            box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
-        }
-
-        @media (min-width: 769px) {
-            .mobile-menu {
-                display: none;
-            }
-        }
-
-        .content-with-mobile-menu {
-            padding-bottom: 80px;
-        }
-
-        .back-button {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-            padding: 0.5rem 1rem;
-            background: white;
-            border: 1px solid #e5e7eb;
-            border-radius: 0.5rem;
-            color: #374151;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .back-button:hover {
-            background: #f9fafb;
-            border-color: #d1d5db;
-        }
-
-        /* Animations pour le bouton + */
-        @keyframes buttonPulse {
-            0% { transform: scale(1); }
-            50% { transform: scale(0.9); }
-            100% { transform: scale(1); }
-        }
-
-        @keyframes successPulse {
-            0% { transform: scale(1); background-color: #2563eb; }
-            50% { transform: scale(1.1); background-color: #10b981; }
-            100% { transform: scale(1); background-color: #2563eb; }
-        }
-
-        .btn-add-product {
-            transition: all 0.2s ease;
-        }
-
-        .btn-add-product:active {
-            animation: buttonPulse 0.3s ease;
-        }
-
-        .btn-add-product.added {
-            animation: successPulse 0.5s ease;
-        }
-
-        /* Toast notification */
-        .toast-notification {
-            position: fixed;
-            top: 80px;
-            right: 20px;
-            background: #10b981;
-            color: white;
-            padding: 12px 20px;
-            border-radius: 8px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            z-index: 1000;
-            animation: slideInRight 0.3s ease, slideOutRight 0.3s ease 2.7s;
-        }
-
-        @keyframes slideInRight {
-            from {
-                transform: translateX(400px);
-                opacity: 0;
-            }
-            to {
-                transform: translateX(0);
-                opacity: 1;
-            }
-        }
-
-        @keyframes slideOutRight {
-            from {
-                transform: translateX(0);
-                opacity: 1;
-            }
-            to {
-                transform: translateX(400px);
-                opacity: 0;
-            }
-        }
-
-        /* Badge panier avec animation */
-        .cart-badge {
-            position: absolute;
-            top: -8px;
-            right: -8px;
-            background: #ef4444;
-            color: white;
-            border-radius: 50%;
-            width: 24px;
-            height: 24px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 12px;
-            font-weight: bold;
-            animation: cartBounce 0.5s ease;
-        }
-
-        @keyframes cartBounce {
-            0%, 100% { transform: scale(1); }
-            25% { transform: scale(1.3); }
-            50% { transform: scale(0.9); }
-            75% { transform: scale(1.1); }
-        }
-
-        /* Animation de la ligne de produit ajoutée */
-        @keyframes highlightProduct {
-            0% { background-color: #f3f4f6; }
-            50% { background-color: #d1fae5; }
-            100% { background-color: #f3f4f6; }
-        }
-
-        .product-added {
-            animation: highlightProduct 1s ease;
-        }
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+        * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+        body { font-family:'Inter',sans-serif; -webkit-font-smoothing:antialiased; background:linear-gradient(135deg,#0f172a 0%,#1e293b 100%); color:white; overflow-x:hidden; min-height:100vh; }
+        .glass { background:rgba(255,255,255,0.05); backdrop-filter:blur(10px); border:1px solid rgba(255,255,255,0.1); box-shadow:0 8px 32px rgba(0,0,0,0.37); }
+        .glass-card { background:rgba(255,255,255,0.08); backdrop-filter:blur(12px); border:1px solid rgba(255,255,255,0.12); border-radius:20px; box-shadow:0 8px 32px rgba(0,0,0,0.37); transition:all 0.3s; }
+        .glass-card:hover { transform:translateY(-2px); box-shadow:0 12px 40px rgba(0,0,0,0.5); border-color:rgba(255,255,255,0.2); }
+        .btn-3d { position:relative; padding:12px 24px; border:none; border-radius:12px; font-weight:600; cursor:pointer; transition:all 0.2s; box-shadow:0 4px 0 rgba(0,0,0,0.2),0 8px 16px rgba(0,0,0,0.3); }
+        .btn-3d:active { transform:translateY(4px); box-shadow:0 0 0 rgba(0,0,0,0.2),0 4px 8px rgba(0,0,0,0.3); }
+        .btn-3d:hover { transform:translateY(-2px); box-shadow:0 6px 0 rgba(0,0,0,0.2),0 12px 24px rgba(0,0,0,0.4); }
+        .btn-primary { background:linear-gradient(135deg,#3b82f6 0%,#2563eb 100%); color:white; }
+        .btn-success { background:linear-gradient(135deg,#10b981 0%,#059669 100%); color:white; }
+        .btn-danger { background:linear-gradient(135deg,#ef4444 0%,#dc2626 100%); color:white; }
+        .btn-add { width:44px; height:44px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:24px; background:linear-gradient(135deg,#3b82f6,#2563eb); box-shadow:0 4px 0 #1e40af,0 8px 16px rgba(59,130,246,0.4); transition:all 0.2s; }
+        .btn-add:hover { transform:translateY(-2px) scale(1.05); box-shadow:0 6px 0 #1e40af,0 12px 24px rgba(59,130,246,0.6); }
+        .btn-add:active { transform:translateY(4px) scale(0.95); box-shadow:0 0 0 #1e40af,0 4px 8px rgba(59,130,246,0.4); }
+        .btn-add.added { animation:pulse 0.6s; }
+        @keyframes pulse { 0%,100% { background:linear-gradient(135deg,#3b82f6,#2563eb); transform:scale(1); } 50% { background:linear-gradient(135deg,#10b981,#059669); transform:scale(1.15); } }
+        .input-field { width:100%; padding:14px 20px; background:rgba(255,255,255,0.08); border:2px solid rgba(255,255,255,0.1); border-radius:12px; color:white; font-size:16px; transition:all 0.3s; }
+        .input-field:focus { outline:none; border-color:#3b82f6; background:rgba(255,255,255,0.12); box-shadow:0 0 0 4px rgba(59,130,246,0.1); }
+        .input-field::placeholder { color:rgba(255,255,255,0.4); }
+        .product-card { background:rgba(255,255,255,0.06); backdrop-filter:blur(10px); border:1px solid rgba(255,255,255,0.1); border-radius:16px; padding:16px; transition:all 0.3s; cursor:pointer; }
+        .product-card:hover { transform:translateY(-4px) scale(1.02); background:rgba(255,255,255,0.1); border-color:rgba(59,130,246,0.5); box-shadow:0 12px 32px rgba(59,130,246,0.3); }
+        .product-card.selected { border-color:#3b82f6; background:rgba(59,130,246,0.15); }
+        .toast { position:fixed; top:90px; right:20px; background:linear-gradient(135deg,#10b981,#059669); color:white; padding:16px 24px; border-radius:12px; box-shadow:0 8px 32px rgba(16,185,129,0.4); display:flex; align-items:center; gap:12px; z-index:10000; animation:slideIn 0.3s; }
+        @keyframes slideIn { from { transform:translateX(400px); opacity:0; } to { transform:translateX(0); opacity:1; } }
+        .badge { position:absolute; top:-8px; right:-8px; background:linear-gradient(135deg,#ef4444,#dc2626); color:white; border-radius:50%; width:28px; height:28px; display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:bold; box-shadow:0 4px 12px rgba(239,68,68,0.5); animation:badgePulse 2s infinite; }
+        @keyframes badgePulse { 0%,100% { transform:scale(1); } 50% { transform:scale(1.1); } }
+        .stat-card { background:linear-gradient(135deg,rgba(59,130,246,0.2),rgba(37,99,235,0.1)); backdrop-filter:blur(10px); border:1px solid rgba(59,130,246,0.3); border-radius:20px; padding:24px; transition:all 0.3s; }
+        .stat-card:hover { transform:translateY(-4px); border-color:rgba(59,130,246,0.6); box-shadow:0 12px 32px rgba(59,130,246,0.3); }
+        .category-pill { padding:8px 16px; border-radius:20px; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); cursor:pointer; transition:all 0.2s; white-space:nowrap; font-size:14px; }
+        .category-pill:hover { background:rgba(59,130,246,0.2); border-color:rgba(59,130,246,0.5); }
+        .category-pill.active { background:linear-gradient(135deg,#3b82f6,#2563eb); border-color:transparent; box-shadow:0 4px 12px rgba(59,130,246,0.4); }
+        .mobile-bar { position:fixed; bottom:0; left:0; right:0; background:rgba(15,23,42,0.95); backdrop-filter:blur(12px); border-top:1px solid rgba(255,255,255,0.1); padding:12px; z-index:1000; box-shadow:0 -4px 20px rgba(0,0,0,0.3); }
+        .mobile-nav-btn { flex:1; display:flex; flex-direction:column; align-items:center; gap:4px; padding:8px; border-radius:12px; transition:all 0.2s; color:rgba(255,255,255,0.6); }
+        .mobile-nav-btn.active { background:rgba(59,130,246,0.2); color:#3b82f6; }
+        ::-webkit-scrollbar { width:8px; height:8px; }
+        ::-webkit-scrollbar-track { background:rgba(255,255,255,0.05); border-radius:4px; }
+        ::-webkit-scrollbar-thumb { background:rgba(59,130,246,0.5); border-radius:4px; }
+        ::-webkit-scrollbar-thumb:hover { background:rgba(59,130,246,0.7); }
+        .fade-in { animation:fadeIn 0.3s; }
+        @keyframes fadeIn { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
+        .content-padding { padding-bottom:100px; }
+        @media (min-width:769px) { .mobile-bar { display:none; } .content-padding { padding-bottom:20px; } }
+        .quantity-btn { width:36px; height:36px; border-radius:8px; display:flex; align-items:center; justify-content:center; font-weight:bold; background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.2); transition:all 0.2s; cursor:pointer; }
+        .quantity-btn:hover { background:rgba(59,130,246,0.3); border-color:#3b82f6; }
+        .quantity-btn:active { transform:scale(0.9); }
+        .template-card { background:rgba(139,92,246,0.1); border:1px solid rgba(139,92,246,0.3); border-radius:16px; padding:20px; cursor:pointer; transition:all 0.3s; }
+        .template-card:hover { background:rgba(139,92,246,0.2); border-color:rgba(139,92,246,0.5); transform:translateY(-2px); box-shadow:0 8px 24px rgba(139,92,246,0.3); }
+        .search-highlight { background:rgba(59,130,246,0.3); padding:2px 4px; border-radius:4px; }
     </style>
 </head>
-<body class="bg-gray-50">
+<body>
     <div id="root"></div>
-
     <script type="text/babel">
-        const { useState, useEffect } = React;
+        const { useState, useEffect, useRef } = React;
+// DONNÉES PRODUITS AJAX
+const ajaxProducts = [
+    { id: 'ajax1', name: 'Hub', category: 'Centrales', price: 108.09, description: 'Centrale IP-GPRS 2G - Ethernet - Gsm/Gprs  (alimentation et cable ethernet fourn...', icon: '🏢' },
+    { id: 'ajax2', name: 'Hub 2', category: 'Centrales', price: 151.79, description: 'Centrale IP-GPRS 2G (compatible MotionCam) - Ethernet - Gsm/Gprs  (alimentation ...', icon: '🏢' },
+    { id: 'ajax3', name: 'Hub 2 - 4G', category: 'Centrales', price: 227.13, description: 'Centrale IP-GPRS 4G (compatible MotionCam) - Ethernet - Gsm/Gprs  (alimentation ...', icon: '🏢' },
+    { id: 'ajax4', name: 'Hub 2 Plus', category: 'Centrales', price: 259.4, description: 'Centrale IP-GPRS 2G/3G/4G Compatible MotionCam) - Ethernet -module wifi integré ...', icon: '🏢' },
+    { id: 'ajax5', name: 'DoorProtect', category: 'Détecteurs d'ouverture', price: 23.9, description: 'Detecteur d\'ouverture  - Deux aimants - CR123A batterie (pré-installée) - 1 ent...', icon: '🚪' },
+    { id: 'ajax6', name: 'DoorProtectPlus', category: 'Détecteurs d'ouverture', price: 35.88, description: 'Detecteur d\'ouverture, de vibration et d\'inclinaison - Deux aimants - CR123A b...', icon: '🚪' },
+    { id: 'ajax7', name: 'MotionProtect', category: 'Détecteurs de mouvement', price: 40.55, description: 'Detecteur infrarouge - Anti animaux - CR123A batterie (pré-installée)', icon: '👁️' },
+    { id: 'ajax8', name: 'MotionProtect Plus', category: 'Détecteurs de mouvement', price: 55.64, description: 'Detecteur infrarouge double technologie -  Anti animaux - CR123A batterie (pré-i...', icon: '👁️' },
+    { id: 'ajax9', name: 'CombiProtect', category: 'Détecteurs de mouvement', price: 56.12, description: 'Detecteur infrarouge et bris de vitre -  Anti animaux - CR123A batterie (pré-ins...', icon: '👁️' },
+    { id: 'ajax10', name: 'MotionProtect Outdoor', category: 'Détecteurs de mouvement', price: 140.31, description: 'Detecteur infrarouge exterieur          - Double faisceau           - Anti-mask ...', icon: '👁️' },
+    { id: 'ajax11', name: 'Curtainprotect', category: 'Détecteurs de mouvement', price: 47.27, description: 'Détecteur PIR de type rideau Ajax  Portée de détection configurable de 6 à 15 m', icon: '👁️' },
+    { id: 'ajax12', name: 'DualCurtain Outdoor', category: 'Détecteurs de mouvement', price: 143.45, description: 'Detecteur infrarouge exterieur rideau          -4 capteurs PIR           - Anti-...', icon: '👁️' },
+    { id: 'ajax13', name: 'Curtain Outdoor Jeweller', category: 'Détecteurs de mouvement', price: 102.6, description: '', icon: '👁️' },
+    { id: 'ajax14', name: 'MotionCam', category: 'Détecteurs caméra', price: 92.52, description: 'Detecteur infrarouge avec camera - Anti animaux - 2 CR123A batterie (pré-install...', icon: '📷' },
+    { id: 'ajax15', name: 'MotionCam Outdoor', category: 'Détecteurs caméra', price: 172.58, description: 'Detecteur infrarouge caméra exterieur         - Double faisceau              -  ...', icon: '📷' },
+    { id: 'ajax16', name: 'GlassProtect', category: 'Détecteurs bris de vitre', price: 40.55, description: 'Detecteur de bris de vitre - 1 entrée contact sec - CR123A batterie (pré-install...', icon: '🔨' },
+    { id: 'ajax17', name: 'FireProtect', category: 'Détecteurs incendie', price: 47.27, description: 'Detecteur de fumée - capteur de température integré - 2 x piles de CR2032 (préin...', icon: '🔥' },
+    { id: 'ajax18', name: 'FireProtect Plus', category: 'Détecteurs incendie', price: 72.24, description: 'Detecteur de fumée et CO2 - capteur de température integré - 2 x piles de CR2032...', icon: '🔥' },
+    { id: 'ajax19', name: 'LeaksProtect', category: 'Détecteurs inondation', price: 32.22, description: 'Detecteur d\'innondation - Deux piles AAA (préinstallées)', icon: '💧' },
+    { id: 'ajax20', name: 'StreetSiren', category: 'Sirènes', price: 176.74, description: 'Sirène exterieure avec flash     - Quatre CR123A batteries (pré-installées)', icon: '🚨' },
+    { id: 'ajax21', name: 'StreetSirenPlus NFA2P', category: 'Sirènes', price: 137.25, description: 'Sirène exterieure NFA2P avec flash     - Quatre CR123A batteries (pré-installées...', icon: '🚨' },
+    { id: 'ajax22', name: 'StreetSirencustom', category: 'Sirènes', price: 79.53, description: 'Sirène exterieure avec flash avec couvercle personnalisable     - Quatre CR123A ...', icon: '🚨' },
+    { id: 'ajax23', name: 'HomeSIren', category: 'Sirènes', price: 40.55, description: 'Sirène interieure     - Deux CR123A batteries (pré-installées)', icon: '🚨' },
+    { id: 'ajax24', name: 'KeyPad', category: 'Claviers', price: 63.93, description: 'Clavier tactile - 4 piles AAA (préinstallées)', icon: '⌨️' },
+    { id: 'ajax25', name: 'KeyPad Plus', category: 'Claviers', price: 81.05, description: 'Clavier tactile avec lecteur de badge - 4 piles AAA (préinstallées)', icon: '⌨️' },
+    { id: 'ajax26', name: 'SpaceControl', category: 'Télécommandes', price: 20.27, description: 'Télécommande 4 boutons bidirectionnelle - CR123A batterie (pré-installée)', icon: '🎮' },
+    { id: 'ajax27', name: 'Rex / Range extender', category: 'Répéteurs', price: 80.59, description: 'Répéteur radio', icon: '📡' },
+    { id: 'ajax28', name: 'Rex 2/ Range extender', category: 'Répéteurs', price: 115.37, description: 'Répéteur radio comptatible photos', icon: '📡' },
+    { id: 'ajax29', name: 'WallSwitch', category: 'Relais et modules', price: 28.6, description: 'Relais de controle à distance 110~240v - Compteur de consommation', icon: '⚡' },
+    { id: 'ajax30', name: 'Relay', category: 'Relais et modules', price: 28.6, description: 'Relais de controle à distance (contact sec) - Entrée d\'alimentation 7~24V', icon: '⚡' },
+    { id: 'ajax31', name: 'Multitransmitter-3EOL', category: 'Relais et modules', price: 99.81, description: 'Module qui permet l\'intégration au système  Ajax d\'appareils tiers câblés 18 z...', icon: '⚡' },
+    { id: 'ajax32', name: 'DC12V-PCB2', category: 'Relais et modules', price: 16.08, description: 'Module d\'alimentation 12 VDC Compatible avec Ajax le Hub 2 Tension d\'entrée 8~...', icon: '⚡' },
+    { id: 'ajax33', name: 'DC6V-PCB2', category: 'Relais et modules', price: 16.08, description: 'Module d\'alimentation 12 VDC Compatible avec Ajax le Hub 2 et rex 2 Tension d\'...', icon: '⚡' },
+    { id: 'ajax34', name: 'Socket', category: 'Relais et modules', price: 49.88, description: 'Prise intelligente connectée', icon: '⚡' },
+    { id: 'ajax35', name: 'Transmitter', category: 'Relais et modules', price: 32.22, description: 'Transmetteur universel - entrée filaire et autoprotection (accelerometre) - 3 pi...', icon: '⚡' },
+    { id: 'ajax36', name: 'Button', category: 'Boutons panic', price: 20.28, description: 'Bouton panic', icon: '🆘' },
+    { id: 'ajax37', name: 'Doublebutton', category: 'Boutons panic', price: 20.28, description: 'Double Bouton panic', icon: '🆘' },
+    { id: 'ajax38', name: 'Hood', category: 'Accessoires', price: 7.8, description: 'Casquette de protection pour Motionprotect Outdoor', icon: '🔧' },
+    { id: 'ajax39', name: 'TAG', category: 'Accessoires', price: 40.55, description: 'Tag d\'accès pour Keypad plus - lot de10', icon: '🔧' },
+    { id: 'ajax40', name: 'PASS', category: 'Accessoires', price: 37.94, description: 'Pass d\'accès pour Keypad plus - lot de10', icon: '🔧' },
+    { id: 'ajax41', name: 'DinHolder', category: 'Accessoires', price: 6.0, description: 'Support pour rail Din', icon: '🔧' },
+    { id: 'ajax42', name: 'Brandplates', category: 'Accessoires', price: 51.98, description: 'Pack de 10 couvercles personnalisable', icon: '🔧' },
+    { id: 'ajax43', name: 'Holder', category: 'Accessoires', price: 3.66, description: 'Support pour bouton d\'urgence', icon: '🔧' },
+    { id: 'ajax44', name: 'MB100', category: 'Accessoires', price: 16.2, description: 'Rotule de fixation a fixer sur les MOTIONCAMOUTDOOR', icon: '🔧' },
+    { id: 'ajax45', name: 'XTO 2.0', category: 'Kits', price: 459.0, description: 'XTO 2.0 KIT CHANTIER - 1 coffret 430x330x200 prepercé avec serrure à monter - 1 ...', icon: '📦' },
+    { id: 'ajax46', name: 'XTO 2.0 - 4G', category: 'Kits', price: 535.5, description: 'XTO 2.0 -4G KIT CHANTIER - 1 coffret 430x330x200 prepercé avec serrure à monter ...', icon: '📦' },
+    { id: 'ajax47', name: 'REX2 XTENDER', category: 'Kits', price: 423.0, description: 'KIT REX2 XTENDER ( pour augmenter la portée radio) - 1 coffret 430x330x200 prepe...', icon: '📦' },
+    { id: 'ajax48', name: 'COFFRET', category: 'Kits', price: 166.5, description: 'COFFRET SEUL               - 1 coffret 430x330x200 prepercé                     ...', icon: '📦' },
+    { id: 'ajax49', name: 'PILE 6V 960AH', category: 'Kits', price: 134.1, description: 'PILE 6V 960AH ZINC AIR (a utilisation unique) Autonomie moyenne de 14 mois', icon: '📦' },
+    { id: 'ajax50', name: 'Lifequality', category: 'Nouveautés', price: 208.47, description: 'Moniteur de température, humidité et CO2', icon: '✨' },
+    { id: 'ajax51', name: 'Lightcore - 1G', category: 'Nouveautés', price: 46.65, description: 'Interrupteur simple', icon: '✨' },
+    { id: 'ajax52', name: 'Lightcore - 2G', category: 'Nouveautés', price: 53.78, description: 'Interrupteur double', icon: '✨' },
+    { id: 'ajax53', name: 'Lightcore - 2W', category: 'Nouveautés', price: 49.98, description: 'Interrupteur va et vient', icon: '✨' },
+    { id: 'ajax54', name: 'SOLOBUTTON - 1G2W', category: 'Nouveautés', price: 8.09, description: 'Panneau tactil pour interrupteur   compatible Lightcore 1G et Lightcore-2W', icon: '✨' },
+    { id: 'ajax55', name: 'SOLOBUTTON - 2G', category: 'Nouveautés', price: 9.05, description: 'Panneau tactil pour interrupteur   compatible Lightcore 2G', icon: '✨' },
+];
 
-        // Données produits Ajax
-        const ajaxProducts = [
-            { id: 'ajax1', name: 'Hub', category: 'Centrales', price: 108.09, description: 'Centrale IP-GPRS 2G - Ethernet - Gsm/Gprs  (alimentation et cable ethernet fournie)' },
-            { id: 'ajax2', name: 'Hub 2', category: 'Centrales', price: 151.79, description: 'Centrale IP-GPRS 2G (compatible MotionCam) - Ethernet - Gsm/Gprs  (alimentation et cable ethernet fo...' },
-            { id: 'ajax3', name: 'Hub 2 - 4G', category: 'Centrales', price: 227.13, description: 'Centrale IP-GPRS 4G (compatible MotionCam) - Ethernet - Gsm/Gprs  (alimentation et cable ethernet fo...' },
-            { id: 'ajax4', name: 'Hub 2 Plus', category: 'Centrales', price: 259.4, description: 'Centrale IP-GPRS 2G/3G/4G Compatible MotionCam) - Ethernet -module wifi integré - Gsm/Gprs  (aliment...' },
-            { id: 'ajax5', name: 'DoorProtect', category: 'Détecteurs d\'ouverture', price: 23.9, description: 'Detecteur d\'ouverture  - Deux aimants - CR123A batterie (pré-installée) - 1 entrée contact sec' },
-            { id: 'ajax6', name: 'DoorProtectPlus', category: 'Détecteurs d\'ouverture', price: 35.88, description: 'Detecteur d\'ouverture, de vibration et d\'inclinaison - Deux aimants - CR123A batterie (pré-installée...' },
-            { id: 'ajax7', name: 'MotionProtect', category: 'Détecteurs de mouvement', price: 40.55, description: 'Detecteur infrarouge - Anti animaux - CR123A batterie (pré-installée)' },
-            { id: 'ajax8', name: 'MotionProtect Plus', category: 'Détecteurs de mouvement', price: 55.64, description: 'Detecteur infrarouge double technologie -  Anti animaux - CR123A batterie (pré-installée)' },
-            { id: 'ajax9', name: 'CombiProtect', category: 'Détecteurs de mouvement', price: 56.12, description: 'Detecteur infrarouge et bris de vitre -  Anti animaux - CR123A batterie (pré-installée)' },
-            { id: 'ajax10', name: 'MotionProtect Outdoor', category: 'Détecteurs de mouvement', price: 140.31, description: 'Detecteur infrarouge exterieur          - Double faisceau           - Anti-mask          - Anti anim...' },
-            { id: 'ajax11', name: 'Curtainprotect', category: 'Détecteurs de mouvement', price: 47.27, description: 'Détecteur PIR de type rideau Ajax  Portée de détection configurable de 6 à 15 m' },
-            { id: 'ajax12', name: 'DualCurtain Outdoor', category: 'Détecteurs de mouvement', price: 143.45, description: 'Detecteur infrarouge exterieur rideau          -4 capteurs PIR           - Anti-mask           - det...' },
-            { id: 'ajax13', name: 'Curtain Outdoor Jeweller', category: 'Détecteurs de mouvement', price: 102.6, description: '' },
-            { id: 'ajax14', name: 'MotionCam', category: 'Détecteurs caméra', price: 92.52, description: 'Detecteur infrarouge avec camera - Anti animaux - 2 CR123A batterie (pré-installée)' },
-            { id: 'ajax15', name: 'MotionCam Outdoor', category: 'Détecteurs caméra', price: 172.58, description: 'Detecteur infrarouge caméra exterieur         - Double faisceau              -  Anti Animaux        ...' },
-            { id: 'ajax16', name: 'GlassProtect', category: 'Détecteurs bris de vitre', price: 40.55, description: 'Detecteur de bris de vitre - 1 entrée contact sec - CR123A batterie (pré-installée)' },
-            { id: 'ajax17', name: 'FireProtect', category: 'Détecteurs incendie', price: 47.27, description: 'Detecteur de fumée - capteur de température integré - 2 x piles de CR2032 (préinstallée)' },
-            { id: 'ajax18', name: 'FireProtect Plus', category: 'Détecteurs incendie', price: 72.24, description: 'Detecteur de fumée et CO2 - capteur de température integré - 2 x piles de CR2032 (préinstallée)' },
-            { id: 'ajax19', name: 'LeaksProtect', category: 'Détecteurs inondation', price: 32.22, description: 'Detecteur d\'innondation - Deux piles AAA (préinstallées)' },
-            { id: 'ajax20', name: 'StreetSiren', category: 'Sirènes', price: 176.74, description: 'Sirène exterieure avec flash     - Quatre CR123A batteries (pré-installées)' },
-            { id: 'ajax21', name: 'StreetSirenPlus NFA2P', category: 'Sirènes', price: 137.25, description: 'Sirène exterieure NFA2P avec flash     - Quatre CR123A batteries (pré-installées)' },
-            { id: 'ajax22', name: 'StreetSirencustom', category: 'Sirènes', price: 79.53, description: 'Sirène exterieure avec flash avec couvercle personnalisable     - Quatre CR123A batteries (pré-insta...' },
-            { id: 'ajax23', name: 'HomeSIren', category: 'Sirènes', price: 40.55, description: 'Sirène interieure     - Deux CR123A batteries (pré-installées)' },
-            { id: 'ajax24', name: 'KeyPad', category: 'Claviers', price: 63.93, description: 'Clavier tactile - 4 piles AAA (préinstallées)' },
-            { id: 'ajax25', name: 'KeyPad Plus', category: 'Claviers', price: 81.05, description: 'Clavier tactile avec lecteur de badge - 4 piles AAA (préinstallées)' },
-            { id: 'ajax26', name: 'SpaceControl', category: 'Télécommandes', price: 20.27, description: 'Télécommande 4 boutons bidirectionnelle - CR123A batterie (pré-installée)' },
-            { id: 'ajax27', name: 'Rex / Range extender', category: 'Répéteurs', price: 80.59, description: 'Répéteur radio' },
-            { id: 'ajax28', name: 'Rex 2/ Range extender', category: 'Répéteurs', price: 115.37, description: 'Répéteur radio comptatible photos' },
-            { id: 'ajax29', name: 'WallSwitch', category: 'Relais et modules', price: 28.6, description: 'Relais de controle à distance 110~240v - Compteur de consommation' },
-            { id: 'ajax30', name: 'Relay', category: 'Relais et modules', price: 28.6, description: 'Relais de controle à distance (contact sec) - Entrée d\'alimentation 7~24V' },
-            { id: 'ajax31', name: 'Multitransmitter-3EOL', category: 'Relais et modules', price: 99.81, description: 'Module qui permet l\'intégration au système  Ajax d\'appareils tiers câblés 18 zones' },
-            { id: 'ajax32', name: 'DC12V-PCB2', category: 'Relais et modules', price: 16.08, description: 'Module d\'alimentation 12 VDC Compatible avec Ajax le Hub 2 Tension d\'entrée 8~20 VDC' },
-            { id: 'ajax33', name: 'DC6V-PCB2', category: 'Relais et modules', price: 16.08, description: 'Module d\'alimentation 12 VDC Compatible avec Ajax le Hub 2 et rex 2 Tension d\'entrée 4~20 VDC' },
-            { id: 'ajax34', name: 'Socket', category: 'Relais et modules', price: 49.88, description: 'Prise intelligente connectée' },
-            { id: 'ajax35', name: 'Transmitter', category: 'Relais et modules', price: 32.22, description: 'Transmetteur universel - entrée filaire et autoprotection (accelerometre) - 3 piles CR2032 (préinsta...' },
-            { id: 'ajax36', name: 'Button', category: 'Boutons panic', price: 20.28, description: 'Bouton panic' },
-            { id: 'ajax37', name: 'Doublebutton', category: 'Boutons panic', price: 20.28, description: 'Double Bouton panic' },
-            { id: 'ajax38', name: 'Hood', category: 'Accessoires', price: 7.8, description: 'Casquette de protection pour Motionprotect Outdoor' },
-            { id: 'ajax39', name: 'TAG', category: 'Accessoires', price: 40.55, description: 'Tag d\'accès pour Keypad plus - lot de10' },
-            { id: 'ajax40', name: 'PASS', category: 'Accessoires', price: 37.94, description: 'Pass d\'accès pour Keypad plus - lot de10' },
-            { id: 'ajax41', name: 'DinHolder', category: 'Accessoires', price: 6.0, description: 'Support pour rail Din' },
-            { id: 'ajax42', name: 'Brandplates', category: 'Accessoires', price: 51.98, description: 'Pack de 10 couvercles personnalisable' },
-            { id: 'ajax43', name: 'Holder', category: 'Accessoires', price: 3.66, description: 'Support pour bouton d\'urgence' },
-            { id: 'ajax44', name: 'MB100', category: 'Accessoires', price: 16.2, description: 'Rotule de fixation a fixer sur les MOTIONCAMOUTDOOR' },
-            { id: 'ajax45', name: 'XTO 2.0', category: 'Kits', price: 459.0, description: 'XTO 2.0 KIT CHANTIER - 1 coffret 430x330x200 prepercé avec serrure à monter - 1 centrale Hub2 - 1 mo...' },
-            { id: 'ajax46', name: 'XTO 2.0 - 4G', category: 'Kits', price: 535.5, description: 'XTO 2.0 -4G KIT CHANTIER - 1 coffret 430x330x200 prepercé avec serrure à monter - 1 centrale Hub2 - ...' },
-            { id: 'ajax47', name: 'REX2 XTENDER', category: 'Kits', price: 423.0, description: 'KIT REX2 XTENDER ( pour augmenter la portée radio) - 1 coffret 430x330x200 prepercé avec serrure à m...' },
-            { id: 'ajax48', name: 'COFFRET', category: 'Kits', price: 166.5, description: 'COFFRET SEUL               - 1 coffret 430x330x200 prepercé                                    -  1 ...' },
-            { id: 'ajax49', name: 'PILE 6V 960AH', category: 'Kits', price: 134.1, description: 'PILE 6V 960AH ZINC AIR (a utilisation unique) Autonomie moyenne de 14 mois' },
-            { id: 'ajax50', name: 'Lifequality', category: 'Nouveautés', price: 208.47, description: 'Moniteur de température, humidité et CO2' },
-            { id: 'ajax51', name: 'Lightcore - 1G', category: 'Nouveautés', price: 46.65, description: 'Interrupteur simple' },
-            { id: 'ajax52', name: 'Lightcore - 2G', category: 'Nouveautés', price: 53.78, description: 'Interrupteur double' },
-            { id: 'ajax53', name: 'Lightcore - 2W', category: 'Nouveautés', price: 49.98, description: 'Interrupteur va et vient' },
-            { id: 'ajax54', name: 'SOLOBUTTON - 1G2W', category: 'Nouveautés', price: 8.09, description: 'Panneau tactil pour interrupteur   compatible Lightcore 1G et Lightcore-2W' },
-            { id: 'ajax55', name: 'SOLOBUTTON - 2G', category: 'Nouveautés', price: 9.05, description: 'Panneau tactil pour interrupteur   compatible Lightcore 2G' }
+// DONNÉES PRODUITS DAHUA
+const dahuaProducts = [
+    { id: 'dahua1', name: 'NVR 4 canaux', category: 'Enregistreurs', price: 299, description: 'Enregistreur 4K, 4 caméras IP', icon: '📹' },
+    { id: 'dahua2', name: 'NVR 8 canaux', category: 'Enregistreurs', price: 449, description: 'Enregistreur 4K, 8 caméras IP', icon: '📹' },
+    { id: 'dahua3', name: 'Caméra Dôme 4MP', category: 'Caméras', price: 159, description: 'Caméra dôme 4MP', icon: '📷' },
+    { id: 'dahua4', name: 'Caméra Tube 4MP', category: 'Caméras', price: 179, description: 'Caméra tube IR 30m', icon: '📷' },
+    { id: 'dahua5', name: 'Caméra PTZ 2MP', category: 'Caméras', price: 599, description: 'Caméra motorisée zoom x20', icon: '📷' },
+    { id: 'dahua6', name: 'Disque dur 2To', category: 'Accessoires', price: 89, description: 'HDD surveillance', icon: '💾' },
+    { id: 'dahua7', name: 'Switch PoE 8 ports', category: 'Accessoires', price: 149, description: 'Switch PoE', icon: '🔌' },
+    { id: 'dahua8', name: 'Écran 22" LED', category: 'Accessoires', price: 199, description: 'Moniteur Full HD', icon: '🖥️' },
+];
+
+        // Templates de devis prédéfinis
+        const quoteTemplates = [
+            { id: 't1', name: '🏠 Alarme Résidentielle', description: 'Pack alarme maison standard', items: ['ajax2', 'ajax7', 'ajax7', 'ajax7', 'ajax5', 'ajax5', 'ajax23', 'ajax25'] },
+            { id: 't2', name: '⭐ Alarme Premium', description: 'Pack alarme haut de gamme', items: ['ajax4', 'ajax8', 'ajax8', 'ajax14', 'ajax14', 'ajax6', 'ajax20', 'ajax25'] },
+            { id: 't3', name: '📹 Vidéo 4 Caméras', description: 'Installation vidéosurveillance 4 caméras', items: ['dahua1', 'dahua3', 'dahua3', 'dahua4', 'dahua4', 'dahua6', 'dahua7'] },
+            { id: 't4', name: '📹 Vidéo 8 Caméras', description: 'Installation vidéosurveillance 8 caméras', items: ['dahua2', 'dahua3', 'dahua3', 'dahua3', 'dahua3', 'dahua4', 'dahua4', 'dahua4', 'dahua4', 'dahua6', 'dahua7', 'dahua8'] },
+            { id: 't5', name: '🏗️ Kit Chantier', description: 'Protection chantier temporaire', items: ['ajax3', 'ajax10', 'ajax10', 'ajax20'] },
         ];
 
-        // Données produits Dahua
-        const dahuaProducts = [
-            { id: 'dahua1', name: 'NVR 4 canaux', category: 'Enregistreurs', price: 299, description: 'Enregistreur 4K, 4 caméras IP' },
-            { id: 'dahua2', name: 'NVR 8 canaux', category: 'Enregistreurs', price: 449, description: 'Enregistreur 4K, 8 caméras IP' },
-            { id: 'dahua3', name: 'Caméra Dôme 4MP', category: 'Caméras', price: 159, description: 'Caméra dôme intérieure/extérieure 4MP' },
-            { id: 'dahua4', name: 'Caméra Tube 4MP', category: 'Caméras', price: 179, description: 'Caméra tube IR 30m, 4MP' },
-            { id: 'dahua5', name: 'Caméra PTZ 2MP', category: 'Caméras', price: 599, description: 'Caméra motorisée zoom x20' },
-            { id: 'dahua6', name: 'Disque dur 2To', category: 'Accessoires', price: 89, description: 'HDD surveillance 2To' },
-            { id: 'dahua7', name: 'Switch PoE 8 ports', category: 'Accessoires', price: 149, description: 'Switch avec alimentation PoE' },
-            { id: 'dahua8', name: 'Écran 22" LED', category: 'Accessoires', price: 199, description: 'Moniteur Full HD pour surveillance' }
-        ];
-
-        // Initialisation des données
+        // Initialisation
         const initializeData = () => {
-            // Utilisateurs
             if (!localStorage.getItem('foloneo_users')) {
-                const defaultUsers = [{
-                    id: '1',
-                    username: 'admin',
-                    password: 'admin123',
-                    email: 'admin@foloneo.fr',
-                    role: 'admin',
-                    active: true,
-                    createdAt: new Date().toISOString()
-                }];
-                localStorage.setItem('foloneo_users', JSON.stringify(defaultUsers));
+                localStorage.setItem('foloneo_users', JSON.stringify([{
+                    id: '1', username: 'admin', password: 'admin123', email: 'admin@foloneo.fr',
+                    role: 'admin', active: true, createdAt: new Date().toISOString()
+                }]));
             }
-
-            // Produits Ajax
-            if (!localStorage.getItem('foloneo_ajax_products')) {
-                localStorage.setItem('foloneo_ajax_products', JSON.stringify(ajaxProducts));
-            }
-
-            // Produits Dahua
-            if (!localStorage.getItem('foloneo_dahua_products')) {
-                localStorage.setItem('foloneo_dahua_products', JSON.stringify(dahuaProducts));
-            }
-
-            // Devis
-            if (!localStorage.getItem('foloneo_quotes')) {
-                localStorage.setItem('foloneo_quotes', JSON.stringify([]));
-            }
+            if (!localStorage.getItem('foloneo_quotes')) localStorage.setItem('foloneo_quotes', JSON.stringify([]));
         };
 
-        // Écran de connexion
+        // Toast Notification
+        function Toast({ message, onClose }) {
+            useEffect(() => {
+                const timer = setTimeout(onClose, 3000);
+                return () => clearTimeout(timer);
+            }, [onClose]);
+            return <div className="toast"><span className="text-2xl">✓</span><span className="font-semibold">{message}</span></div>;
+        }
+
+        // Login Screen
         function LoginScreen({ onLogin }) {
-            const [mode, setMode] = useState('login');
             const [username, setUsername] = useState('');
             const [password, setPassword] = useState('');
-            const [email, setEmail] = useState('');
-            const [confirmPassword, setConfirmPassword] = useState('');
             const [error, setError] = useState('');
-            const [success, setSuccess] = useState('');
 
             const handleLogin = (e) => {
                 e.preventDefault();
-                setError('');
-                
                 const users = JSON.parse(localStorage.getItem('foloneo_users') || '[]');
                 const user = users.find(u => u.username.toLowerCase() === username.toLowerCase());
-                
-                if (!user) {
-                    setError('Identifiant incorrect');
-                    return;
-                }
-                
-                if (user.password !== password) {
-                    setError('Mot de passe incorrect');
-                    return;
-                }
-                
-                if (!user.active) {
-                    setError('Compte désactivé');
-                    return;
-                }
-                
+                if (!user || user.password !== password) { setError('Identifiant ou mot de passe incorrect'); return; }
+                if (!user.active) { setError('Compte désactivé'); return; }
                 localStorage.setItem('foloneo_current_user', JSON.stringify(user));
                 onLogin(user);
             };
 
-            const handleRegister = (e) => {
-                e.preventDefault();
-                setError('');
-                setSuccess('');
-
-                if (!username || !email || !password || !confirmPassword) {
-                    setError('Tous les champs sont obligatoires');
-                    return;
-                }
-
-                if (password !== confirmPassword) {
-                    setError('Les mots de passe ne correspondent pas');
-                    return;
-                }
-
-                if (password.length < 6) {
-                    setError('Minimum 6 caractères');
-                    return;
-                }
-
-                const users = JSON.parse(localStorage.getItem('foloneo_users') || '[]');
-                
-                if (users.find(u => u.username.toLowerCase() === username.toLowerCase())) {
-                    setError('Identifiant déjà utilisé');
-                    return;
-                }
-
-                const newUser = {
-                    id: Date.now().toString(),
-                    username,
-                    password,
-                    email,
-                    role: 'user',
-                    active: true,
-                    createdAt: new Date().toISOString()
-                };
-
-                users.push(newUser);
-                localStorage.setItem('foloneo_users', JSON.stringify(users));
-                
-                setSuccess('Compte créé ! Connexion...');
-                setTimeout(() => {
-                    setMode('login');
-                    setUsername(newUser.username);
-                    setPassword('');
-                }, 1500);
-            };
-
             return (
-                <div className="min-h-screen foloneo-gradient flex items-center justify-center p-4">
-                    <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-8">
+                <div className="min-h-screen flex items-center justify-center p-4">
+                    <div className="glass-card max-w-md w-full p-8 fade-in">
                         <div className="text-center mb-8">
-                            <div className="inline-flex items-center justify-center w-16 h-16 bg-blue-100 rounded-full mb-4">
-                                <span className="text-3xl font-bold text-blue-600">F</span>
+                            <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-blue-500 to-blue-600 rounded-3xl mb-6 shadow-lg">
+                                <span className="text-4xl font-bold">F</span>
                             </div>
-                            <h1 className="text-3xl font-bold text-gray-800">Foloneo</h1>
-                            <p className="text-gray-600">
-                                {mode === 'login' ? 'Générateur de Devis Pro' : 'Créer un compte'}
-                            </p>
+                            <h1 className="text-3xl font-bold mb-2">Foloneo Pro</h1>
+                            <p className="text-gray-400">Générateur de Devis Commercial</p>
                         </div>
-
-                        {mode === 'login' && (
-                            <form onSubmit={handleLogin} className="space-y-6">
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">Identifiant</label>
-                                    <input
-                                        type="text"
-                                        value={username}
-                                        onChange={(e) => setUsername(e.target.value)}
-                                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
-                                        placeholder="Votre identifiant"
-                                        required
-                                    />
-                                </div>
-
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">Mot de passe</label>
-                                    <input
-                                        type="password"
-                                        value={password}
-                                        onChange={(e) => setPassword(e.target.value)}
-                                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
-                                        placeholder="Votre mot de passe"
-                                        required
-                                    />
-                                </div>
-
-                                {error && (
-                                    <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
-                                        {error}
-                                    </div>
-                                )}
-
-                                {success && (
-                                    <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg text-sm">
-                                        {success}
-                                    </div>
-                                )}
-
-                                <button
-                                    type="submit"
-                                    className="w-full bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition mobile-optimized"
-                                >
-                                    Se connecter
-                                </button>
-
-                                <div className="text-center">
-                                    <button
-                                        type="button"
-                                        onClick={() => setMode('register')}
-                                        className="text-blue-600 text-sm hover:underline"
-                                    >
-                                        Créer un compte
-                                    </button>
-                                </div>
-                            </form>
-                        )}
-
-                        {mode === 'register' && (
-                            <form onSubmit={handleRegister} className="space-y-6">
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">Identifiant</label>
-                                    <input
-                                        type="text"
-                                        value={username}
-                                        onChange={(e) => setUsername(e.target.value)}
-                                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
-                                        required
-                                    />
-                                </div>
-
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">Email</label>
-                                    <input
-                                        type="email"
-                                        value={email}
-                                        onChange={(e) => setEmail(e.target.value)}
-                                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
-                                        required
-                                    />
-                                </div>
-
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">Mot de passe</label>
-                                    <input
-                                        type="password"
-                                        value={password}
-                                        onChange={(e) => setPassword(e.target.value)}
-                                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
-                                        required
-                                    />
-                                </div>
-
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">Confirmer</label>
-                                    <input
-                                        type="password"
-                                        value={confirmPassword}
-                                        onChange={(e) => setConfirmPassword(e.target.value)}
-                                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
-                                        required
-                                    />
-                                </div>
-
-                                {error && (
-                                    <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
-                                        {error}
-                                    </div>
-                                )}
-
-                                {success && (
-                                    <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg text-sm">
-                                        {success}
-                                    </div>
-                                )}
-
-                                <button
-                                    type="submit"
-                                    className="w-full bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition"
-                                >
-                                    Créer mon compte
-                                </button>
-
-                                <div className="text-center">
-                                    <button
-                                        type="button"
-                                        onClick={() => setMode('login')}
-                                        className="text-blue-600 text-sm hover:underline"
-                                    >
-                                        ← Retour à la connexion
-                                    </button>
-                                </div>
-                            </form>
-                        )}
+                        <form onSubmit={handleLogin} className="space-y-6">
+                            <div>
+                                <label className="block text-sm font-medium mb-2">Identifiant</label>
+                                <input type="text" value={username} onChange={(e) => setUsername(e.target.value)} className="input-field" placeholder="Votre identifiant" required />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium mb-2">Mot de passe</label>
+                                <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} className="input-field" placeholder="Votre mot de passe" required />
+                            </div>
+                            {error && <div className="bg-red-500/20 border border-red-500/50 text-red-200 px-4 py-3 rounded-xl text-sm">{error}</div>}
+                            <button type="submit" className="btn-3d btn-primary w-full">Se connecter</button>
+                        </form>
                     </div>
                 </div>
             );
@@ -532,89 +211,85 @@
 
         // Dashboard
         function Dashboard({ quotes }) {
-            const totalQuotes = quotes.length;
-            const totalRevenue = quotes.reduce((sum, q) => sum + q.total, 0);
-            const avgQuote = totalQuotes > 0 ? totalRevenue / totalQuotes : 0;
+            const total = quotes.length;
+            const revenue = quotes.reduce((s, q) => s + q.total, 0);
+            const avg = total > 0 ? revenue / total : 0;
 
             return (
-                <div className="space-y-6">
-                    <h2 className="text-2xl font-bold text-gray-800">📊 Tableau de bord</h2>
-                    
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <div className="bg-white p-6 rounded-xl shadow-lg border-l-4 border-blue-500">
-                            <div className="text-sm text-gray-600 mb-1">Total Devis</div>
-                            <div className="text-3xl font-bold text-gray-800">{totalQuotes}</div>
+                <div className="space-y-6 fade-in">
+                    <h2 className="text-3xl font-bold">📊 Tableau de bord</h2>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div className="stat-card">
+                            <div className="text-4xl mb-2">📝</div>
+                            <div className="text-gray-400 text-sm mb-1">Total Devis</div>
+                            <div className="text-4xl font-bold">{total}</div>
                         </div>
-                        
-                        <div className="bg-white p-6 rounded-xl shadow-lg border-l-4 border-green-500">
-                            <div className="text-sm text-gray-600 mb-1">Chiffre d'affaires</div>
-                            <div className="text-3xl font-bold text-gray-800">{totalRevenue.toFixed(0)} €</div>
+                        <div className="stat-card">
+                            <div className="text-4xl mb-2">💰</div>
+                            <div className="text-gray-400 text-sm mb-1">Chiffre d'affaires</div>
+                            <div className="text-4xl font-bold">{revenue.toFixed(0)} €</div>
                         </div>
-                        
-                        <div className="bg-white p-6 rounded-xl shadow-lg border-l-4 border-purple-500">
-                            <div className="text-sm text-gray-600 mb-1">Devis moyen</div>
-                            <div className="text-3xl font-bold text-gray-800">{avgQuote.toFixed(0)} €</div>
+                        <div className="stat-card">
+                            <div className="text-4xl mb-2">📈</div>
+                            <div className="text-gray-400 text-sm mb-1">Devis moyen</div>
+                            <div className="text-4xl font-bold">{avg.toFixed(0)} €</div>
                         </div>
                     </div>
-
-                    {quotes.length > 0 ? (
-                        <div className="bg-white p-6 rounded-xl shadow-lg">
-                            <h3 className="text-lg font-bold text-gray-800 mb-4">📋 Derniers devis</h3>
+                    {quotes.length > 0 && (
+                        <div className="glass-card p-6">
+                            <h3 className="text-xl font-bold mb-4">📋 Derniers devis</h3>
                             <div className="space-y-3">
-                                {quotes.slice(-5).reverse().map(quote => (
-                                    <div key={quote.id} className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
+                                {quotes.slice(-5).reverse().map(q => (
+                                    <div key={q.id} className="flex justify-between items-center p-4 bg-white/5 rounded-xl hover:bg-white/10 transition">
                                         <div>
-                                            <div className="font-semibold text-gray-800">{quote.clientName}</div>
-                                            <div className="text-sm text-gray-600">{new Date(quote.date).toLocaleDateString('fr-FR')}</div>
+                                            <div className="font-semibold">{q.clientName}</div>
+                                            <div className="text-sm text-gray-400">{new Date(q.date).toLocaleDateString('fr-FR')}</div>
                                         </div>
-                                        <div className="text-lg font-bold text-blue-600">{quote.total.toFixed(2)} €</div>
+                                        <div className="text-2xl font-bold text-blue-400">{q.total.toFixed(2)} €</div>
                                     </div>
                                 ))}
                             </div>
-                        </div>
-                    ) : (
-                        <div className="bg-white p-6 rounded-xl shadow-lg text-center">
-                            <div className="text-6xl mb-4">📝</div>
-                            <h3 className="text-lg font-bold text-gray-800 mb-2">Aucun devis pour le moment</h3>
-                            <p className="text-gray-600">Créez votre premier devis pour commencer !</p>
                         </div>
                     )}
                 </div>
             );
         }
 
-        // Création de devis
-        function QuoteCreator({ ajaxProducts, dahuaProducts, onSave, onBack }) {
+        // Quote Creator
+        function QuoteCreator({ onSave, onBack }) {
             const [clientName, setClientName] = useState('');
             const [clientAddress, setClientAddress] = useState('');
             const [clientPhone, setClientPhone] = useState('');
             const [cart, setCart] = useState([]);
             const [discount, setDiscount] = useState(0);
             const [activeTab, setActiveTab] = useState('ajax');
+            const [searchTerm, setSearchTerm] = useState('');
+            const [selectedCategory, setSelectedCategory] = useState('all');
             const [toast, setToast] = useState(null);
             const [addedProductId, setAddedProductId] = useState(null);
+            const [showTemplates, setShowTemplates] = useState(false);
 
-            const products = activeTab === 'ajax' ? ajaxProducts : dahuaProducts;
+            const allProducts = activeTab === 'ajax' ? ajaxProducts : dahuaProducts;
+            const categories = ['all', ...new Set(allProducts.map(p => p.category))];
 
-            const showToast = (productName) => {
-                setToast(productName);
-                setTimeout(() => setToast(null), 3000);
-            };
+            const filteredProducts = allProducts.filter(p => {
+                const matchSearch = p.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
+                                   p.description.toLowerCase().includes(searchTerm.toLowerCase());
+                const matchCategory = selectedCategory === 'all' || p.category === selectedCategory;
+                return matchSearch && matchCategory;
+            });
 
             const addToCart = (product) => {
-                // Animation du bouton
                 setAddedProductId(product.id);
-                setTimeout(() => setAddedProductId(null), 500);
+                setTimeout(() => setAddedProductId(null), 600);
 
                 const existing = cart.find(item => item.id === product.id);
                 if (existing) {
-                    setCart(cart.map(item => 
-                        item.id === product.id ? {...item, quantity: item.quantity + 1} : item
-                    ));
-                    showToast(`${product.name} x${existing.quantity + 1}`);
+                    setCart(cart.map(item => item.id === product.id ? {...item, quantity: item.quantity + 1} : item));
+                    setToast(`${product.name} x${existing.quantity + 1}`);
                 } else {
                     setCart([...cart, {...product, quantity: 1}]);
-                    showToast(`${product.name} ajouté`);
+                    setToast(`${product.name} ajouté`);
                 }
             };
 
@@ -622,10 +297,28 @@
                 if (quantity <= 0) {
                     setCart(cart.filter(item => item.id !== id));
                 } else {
-                    setCart(cart.map(item => 
-                        item.id === id ? {...item, quantity} : item
-                    ));
+                    setCart(cart.map(item => item.id === id ? {...item, quantity} : item));
                 }
+            };
+
+            const applyTemplate = (template) => {
+                const templateProducts = template.items.map(id => {
+                    const product = [...ajaxProducts, ...dahuaProducts].find(p => p.id === id);
+                    return product;
+                }).filter(Boolean);
+
+                const newCart = {};
+                templateProducts.forEach(p => {
+                    if (newCart[p.id]) {
+                        newCart[p.id].quantity++;
+                    } else {
+                        newCart[p.id] = {...p, quantity: 1};
+                    }
+                });
+
+                setCart(Object.values(newCart));
+                setShowTemplates(false);
+                setToast(`Template "${template.name}" appliqué`);
             };
 
             const subtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
@@ -633,439 +326,290 @@
             const total = subtotal - discountAmount;
 
             const handleSave = () => {
-                if (!clientName) {
-                    alert('Veuillez entrer le nom du client');
-                    return;
-                }
-                if (cart.length === 0) {
-                    alert('Ajoutez des produits au devis');
-                    return;
-                }
+                if (!clientName) { alert('Veuillez entrer le nom du client'); return; }
+                if (cart.length === 0) { alert('Ajoutez des produits au devis'); return; }
 
                 const quote = {
                     id: Date.now().toString(),
                     date: new Date().toISOString(),
-                    clientName,
-                    clientAddress,
-                    clientPhone,
-                    items: cart,
-                    subtotal,
-                    discount,
-                    discountAmount,
-                    total
+                    clientName, clientAddress, clientPhone,
+                    items: cart, subtotal, discount, discountAmount, total
                 };
 
                 onSave(quote);
-                
-                // Reset
-                setClientName('');
-                setClientAddress('');
-                setClientPhone('');
-                setCart([]);
-                setDiscount(0);
+                setClientName(''); setClientAddress(''); setClientPhone('');
+                setCart([]); setDiscount(0);
             };
 
             return (
-                <div className="space-y-6">
-                    {/* Toast notification */}
-                    {toast && (
-                        <div className="toast-notification">
-                            <span className="text-2xl">✓</span>
-                            <span className="font-semibold">{toast}</span>
-                        </div>
-                    )}
-
+                <div className="space-y-6 fade-in">
+                    {toast && <Toast message={toast} onClose={() => setToast(null)} />}
+                    
                     <div className="flex items-center justify-between">
-                        <h2 className="text-2xl font-bold text-gray-800">📝 Nouveau Devis</h2>
-                        <button onClick={onBack} className="back-button">
-                            ← Retour
-                        </button>
+                        <h2 className="text-3xl font-bold">📝 Nouveau Devis</h2>
+                        <button onClick={onBack} className="btn-3d btn-primary">← Retour</button>
                     </div>
 
                     {/* Infos client */}
-                    <div className="bg-white p-6 rounded-xl shadow-lg">
-                        <h3 className="text-lg font-bold text-gray-800 mb-4">👤 Informations Client</h3>
-                        <div className="space-y-4">
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">Nom du client *</label>
-                                <input
-                                    type="text"
-                                    value={clientName}
-                                    onChange={(e) => setClientName(e.target.value)}
-                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-blue-500"
-                                    placeholder="Nom complet"
-                                />
-                            </div>
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">Adresse</label>
-                                <input
-                                    type="text"
-                                    value={clientAddress}
-                                    onChange={(e) => setClientAddress(e.target.value)}
-                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-blue-500"
-                                    placeholder="Adresse complète"
-                                />
-                            </div>
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">Téléphone</label>
-                                <input
-                                    type="tel"
-                                    value={clientPhone}
-                                    onChange={(e) => setClientPhone(e.target.value)}
-                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-blue-500"
-                                    placeholder="06 12 34 56 78"
-                                />
-                            </div>
+                    <div className="glass-card p-6">
+                        <h3 className="text-lg font-bold mb-4">👤 Client</h3>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <input type="text" value={clientName} onChange={(e) => setClientName(e.target.value)} className="input-field" placeholder="Nom du client *" />
+                            <input type="text" value={clientAddress} onChange={(e) => setClientAddress(e.target.value)} className="input-field" placeholder="Adresse" />
+                            <input type="tel" value={clientPhone} onChange={(e) => setClientPhone(e.target.value)} className="input-field" placeholder="Téléphone" />
                         </div>
                     </div>
 
-                    {/* Sélection produits */}
-                    <div className="bg-white p-6 rounded-xl shadow-lg">
+                    {/* Templates */}
+                    <div className="glass-card p-6">
+                        <button onClick={() => setShowTemplates(!showTemplates)} className="btn-3d btn-primary w-full">
+                            ⚡ {showTemplates ? 'Masquer' : 'Utiliser'} un template
+                        </button>
+                        {showTemplates && (
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-4">
+                                {quoteTemplates.map(t => (
+                                    <div key={t.id} onClick={() => applyTemplate(t)} className="template-card">
+                                        <div className="text-3xl mb-2">{t.name.split(' ')[0]}</div>
+                                        <div className="font-bold mb-1">{t.name.substring(2)}</div>
+                                        <div className="text-sm text-gray-400">{t.description}</div>
+                                        <div className="text-xs text-gray-500 mt-2">{t.items.length} produits</div>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Produits */}
+                    <div className="glass-card p-6">
                         <div className="flex items-center justify-between mb-4">
-                            <h3 className="text-lg font-bold text-gray-800">🛒 Produits</h3>
+                            <h3 className="text-lg font-bold">🛒 Produits</h3>
                             {cart.length > 0 && (
                                 <div className="relative">
                                     <span className="text-2xl">🛒</span>
-                                    <span className="cart-badge">{cart.length}</span>
+                                    <span className="badge">{cart.length}</span>
                                 </div>
                             )}
                         </div>
-                        
-                        <div className="flex space-x-2 mb-4">
-                            <button
-                                onClick={() => setActiveTab('ajax')}
-                                className={`flex-1 py-2 px-4 rounded-lg font-semibold transition ${
-                                    activeTab === 'ajax' 
-                                    ? 'bg-blue-600 text-white' 
-                                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                                }`}
-                            >
-                                Ajax System
-                            </button>
-                            <button
-                                onClick={() => setActiveTab('dahua')}
-                                className={`flex-1 py-2 px-4 rounded-lg font-semibold transition ${
-                                    activeTab === 'dahua' 
-                                    ? 'bg-blue-600 text-white' 
-                                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                                }`}
-                            >
-                                Dahua
-                            </button>
+
+                        {/* Onglets */}
+                        <div className="flex gap-2 mb-4">
+                            <button onClick={() => {setActiveTab('ajax'); setSelectedCategory('all');}} className={`btn-3d flex-1 ${activeTab === 'ajax' ? 'btn-primary' : 'bg-gray-700'}`}>Ajax System (55)</button>
+                            <button onClick={() => {setActiveTab('dahua'); setSelectedCategory('all');}} className={`btn-3d flex-1 ${activeTab === 'dahua' ? 'btn-primary' : 'bg-gray-700'}`}>Dahua (8)</button>
                         </div>
 
-                        <div className="space-y-2 max-h-64 overflow-y-auto">
-                            {products.map(product => (
-                                <div key={product.id} className={`flex justify-between items-center p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition ${addedProductId === product.id ? 'product-added' : ''}`}>
-                                    <div className="flex-1">
-                                        <div className="font-semibold text-gray-800">{product.name}</div>
-                                        <div className="text-sm text-gray-600">{product.description}</div>
-                                        <div className="text-sm font-bold text-blue-600">{product.price} €</div>
+                        {/* Recherche */}
+                        <input type="text" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="input-field mb-4" placeholder="🔍 Rechercher un produit..." />
+
+                        {/* Filtres catégories */}
+                        <div className="flex gap-2 mb-4 overflow-x-auto pb-2">
+                            {categories.map(cat => (
+                                <button key={cat} onClick={() => setSelectedCategory(cat)} className={`category-pill ${selectedCategory === cat ? 'active' : ''}`}>
+                                    {cat === 'all' ? '📦 Tous' : cat}
+                                </button>
+                            ))}
+                        </div>
+
+                        {/* Liste produits */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 max-h-96 overflow-y-auto">
+                            {filteredProducts.map(p => (
+                                <div key={p.id} className={`product-card ${addedProductId === p.id ? 'selected' : ''}`}>
+                                    <div className="flex justify-between items-start mb-2">
+                                        <div className="text-2xl">{p.icon}</div>
+                                        <button onClick={() => addToCart(p)} className={`btn-add ${addedProductId === p.id ? 'added' : ''}`}>+</button>
                                     </div>
-                                    <button
-                                        onClick={() => addToCart(product)}
-                                        className={`btn-add-product bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition mobile-optimized font-bold text-lg ${addedProductId === product.id ? 'added' : ''}`}
-                                    >
-                                        +
-                                    </button>
+                                    <div className="font-bold text-sm mb-1">{p.name}</div>
+                                    <div className="text-xs text-gray-400 mb-2 line-clamp-2">{p.description}</div>
+                                    <div className="text-lg font-bold text-blue-400">{p.price.toFixed(2)} €</div>
                                 </div>
                             ))}
                         </div>
+                        {filteredProducts.length === 0 && (
+                            <div className="text-center py-8 text-gray-400">Aucun produit trouvé</div>
+                        )}
                     </div>
 
                     {/* Panier */}
                     {cart.length > 0 && (
-                        <div className="bg-white p-6 rounded-xl shadow-lg">
-                            <h3 className="text-lg font-bold text-gray-800 mb-4">🛍️ Panier ({cart.length})</h3>
-                            <div className="space-y-3">
+                        <div className="glass-card p-6">
+                            <h3 className="text-lg font-bold mb-4">🛍️ Panier ({cart.length} produits)</h3>
+                            <div className="space-y-3 max-h-64 overflow-y-auto mb-4">
                                 {cart.map(item => (
-                                    <div key={item.id} className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
+                                    <div key={item.id} className="flex justify-between items-center p-3 bg-white/5 rounded-xl">
                                         <div className="flex-1">
-                                            <div className="font-semibold text-gray-800">{item.name}</div>
-                                            <div className="text-sm text-gray-600">{item.price} € × {item.quantity}</div>
+                                            <div className="font-semibold">{item.name}</div>
+                                            <div className="text-sm text-gray-400">{item.price} € × {item.quantity}</div>
                                         </div>
-                                        <div className="flex items-center space-x-2">
-                                            <button
-                                                onClick={() => updateQuantity(item.id, item.quantity - 1)}
-                                                className="w-8 h-8 bg-gray-200 rounded-lg hover:bg-gray-300 font-bold"
-                                            >
-                                                -
-                                            </button>
+                                        <div className="flex items-center gap-2">
+                                            <button onClick={() => updateQuantity(item.id, item.quantity - 1)} className="quantity-btn">-</button>
                                             <span className="w-8 text-center font-bold">{item.quantity}</span>
-                                            <button
-                                                onClick={() => updateQuantity(item.id, item.quantity + 1)}
-                                                className="w-8 h-8 bg-gray-200 rounded-lg hover:bg-gray-300 font-bold"
-                                            >
-                                                +
-                                            </button>
-                                            <div className="w-20 text-right font-bold text-blue-600">
-                                                {(item.price * item.quantity).toFixed(2)} €
-                                            </div>
+                                            <button onClick={() => updateQuantity(item.id, item.quantity + 1)} className="quantity-btn">+</button>
+                                            <div className="w-24 text-right font-bold text-blue-400">{(item.price * item.quantity).toFixed(2)} €</div>
                                         </div>
                                     </div>
                                 ))}
                             </div>
 
-                            <div className="mt-6 space-y-3 border-t pt-4">
-                                <div className="flex items-center space-x-3">
-                                    <label className="text-sm font-medium text-gray-700">Remise %</label>
-                                    <input
-                                        type="number"
-                                        value={discount}
-                                        onChange={(e) => setDiscount(Math.max(0, Math.min(100, Number(e.target.value))))}
-                                        className="w-24 px-3 py-2 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-blue-500"
-                                        min="0"
-                                        max="100"
-                                    />
+                            <div className="space-y-3 border-t border-white/10 pt-4">
+                                <div className="flex items-center gap-3">
+                                    <label className="text-sm font-medium">Remise %</label>
+                                    <input type="number" value={discount} onChange={(e) => setDiscount(Math.max(0, Math.min(100, Number(e.target.value))))} className="input-field w-24" min="0" max="100" />
                                 </div>
-                                
-                                <div className="flex justify-between text-gray-700">
-                                    <span>Sous-total:</span>
-                                    <span className="font-semibold">{subtotal.toFixed(2)} €</span>
-                                </div>
-                                
-                                {discount > 0 && (
-                                    <div className="flex justify-between text-red-600">
-                                        <span>Remise ({discount}%):</span>
-                                        <span className="font-semibold">-{discountAmount.toFixed(2)} €</span>
-                                    </div>
-                                )}
-                                
-                                <div className="flex justify-between text-xl font-bold text-gray-800 border-t pt-3">
-                                    <span>TOTAL:</span>
-                                    <span className="text-blue-600">{total.toFixed(2)} €</span>
-                                </div>
+                                <div className="flex justify-between text-gray-300"><span>Sous-total:</span><span className="font-semibold">{subtotal.toFixed(2)} €</span></div>
+                                {discount > 0 && <div className="flex justify-between text-red-400"><span>Remise ({discount}%):</span><span className="font-semibold">-{discountAmount.toFixed(2)} €</span></div>}
+                                <div className="flex justify-between text-2xl font-bold border-t border-white/10 pt-3"><span>TOTAL:</span><span className="text-green-400">{total.toFixed(2)} €</span></div>
                             </div>
 
-                            <button
-                                onClick={handleSave}
-                                className="w-full mt-6 bg-green-600 text-white py-3 rounded-lg font-semibold hover:bg-green-700 transition mobile-optimized"
-                            >
-                                💾 Enregistrer le devis
-                            </button>
+                            <button onClick={handleSave} className="btn-3d btn-success w-full mt-6">💾 Enregistrer le devis</button>
                         </div>
                     )}
                 </div>
             );
         }
 
-        // Gestion produits
-        function ProductsManager({ ajaxProducts, dahuaProducts, onUpdate, onBack }) {
+        // Products Manager
+        function ProductsManager({ onBack }) {
+            const [ajaxProds, setAjaxProds] = useState(ajaxProducts);
+            const [dahuaProds, setDahuaProds] = useState(dahuaProducts);
             const [activeTab, setActiveTab] = useState('ajax');
             const [editingId, setEditingId] = useState(null);
             const [editForm, setEditForm] = useState({});
 
-            const products = activeTab === 'ajax' ? ajaxProducts : dahuaProducts;
+            const products = activeTab === 'ajax' ? ajaxProds : dahuaProds;
 
             const startEdit = (product) => {
                 setEditingId(product.id);
-                setEditForm({...product});
+                setEditForm(product);
             };
 
             const saveEdit = () => {
-                const key = activeTab === 'ajax' ? 'foloneo_ajax_products' : 'foloneo_dahua_products';
-                const allProducts = JSON.parse(localStorage.getItem(key) || '[]');
-                const updated = allProducts.map(p => p.id === editingId ? editForm : p);
-                localStorage.setItem(key, JSON.stringify(updated));
-                onUpdate();
+                if (activeTab === 'ajax') {
+                    setAjaxProds(ajaxProds.map(p => p.id === editingId ? editForm : p));
+                } else {
+                    setDahuaProds(dahuaProds.map(p => p.id === editingId ? editForm : p));
+                }
                 setEditingId(null);
             };
 
             return (
-                <div className="space-y-6">
+                <div className="space-y-6 fade-in">
                     <div className="flex items-center justify-between">
-                        <h2 className="text-2xl font-bold text-gray-800">📦 Gestion des Produits</h2>
-                        <button onClick={onBack} className="back-button">
-                            ← Retour
-                        </button>
+                        <h2 className="text-3xl font-bold">📦 Gestion des Produits</h2>
+                        <button onClick={onBack} className="btn-3d btn-primary">← Retour</button>
                     </div>
 
-                    <div className="flex space-x-2">
-                        <button
-                            onClick={() => setActiveTab('ajax')}
-                            className={`flex-1 py-2 px-4 rounded-lg font-semibold ${
-                                activeTab === 'ajax' ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-700'
-                            }`}
-                        >
-                            Ajax ({ajaxProducts.length})
-                        </button>
-                        <button
-                            onClick={() => setActiveTab('dahua')}
-                            className={`flex-1 py-2 px-4 rounded-lg font-semibold ${
-                                activeTab === 'dahua' ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-700'
-                            }`}
-                        >
-                            Dahua ({dahuaProducts.length})
-                        </button>
+                    <div className="flex gap-2">
+                        <button onClick={() => setActiveTab('ajax')} className={`btn-3d flex-1 ${activeTab === 'ajax' ? 'btn-primary' : 'bg-gray-700'}`}>Ajax ({ajaxProds.length})</button>
+                        <button onClick={() => setActiveTab('dahua')} className={`btn-3d flex-1 ${activeTab === 'dahua' ? 'btn-primary' : 'bg-gray-700'}`}>Dahua ({dahuaProds.length})</button>
                     </div>
 
-                    <div className="space-y-3">
-                        {products.map(product => (
-                            <div key={product.id} className="bg-white p-4 rounded-xl shadow-lg">
-                                {editingId === product.id ? (
-                                    <div className="space-y-3">
-                                        <input
-                                            type="text"
-                                            value={editForm.name}
-                                            onChange={(e) => setEditForm({...editForm, name: e.target.value})}
-                                            className="w-full px-3 py-2 border rounded-lg"
-                                            placeholder="Nom"
-                                        />
-                                        <input
-                                            type="text"
-                                            value={editForm.description}
-                                            onChange={(e) => setEditForm({...editForm, description: e.target.value})}
-                                            className="w-full px-3 py-2 border rounded-lg"
-                                            placeholder="Description"
-                                        />
-                                        <input
-                                            type="number"
-                                            value={editForm.price}
-                                            onChange={(e) => setEditForm({...editForm, price: Number(e.target.value)})}
-                                            className="w-full px-3 py-2 border rounded-lg"
-                                            placeholder="Prix"
-                                        />
-                                        <div className="flex space-x-2">
-                                            <button
-                                                onClick={saveEdit}
-                                                className="flex-1 bg-green-600 text-white py-2 rounded-lg"
-                                            >
-                                                ✓ Sauvegarder
-                                            </button>
-                                            <button
-                                                onClick={() => setEditingId(null)}
-                                                className="flex-1 bg-gray-300 text-gray-700 py-2 rounded-lg"
-                                            >
-                                                ✗ Annuler
-                                            </button>
+                    <div className="glass-card p-6">
+                        <div className="space-y-3">
+                            {products.map(p => (
+                                <div key={p.id} className="bg-white/5 rounded-xl p-4">
+                                    {editingId === p.id ? (
+                                        <div className="space-y-3">
+                                            <input type="text" value={editForm.name} onChange={(e) => setEditForm({...editForm, name: e.target.value})} className="input-field" />
+                                            <input type="number" step="0.01" value={editForm.price} onChange={(e) => setEditForm({...editForm, price: parseFloat(e.target.value)})} className="input-field" />
+                                            <input type="text" value={editForm.description} onChange={(e) => setEditForm({...editForm, description: e.target.value})} className="input-field" />
+                                            <div className="flex gap-2">
+                                                <button onClick={saveEdit} className="btn-3d btn-success flex-1">✓ Sauvegarder</button>
+                                                <button onClick={() => setEditingId(null)} className="btn-3d btn-danger flex-1">✗ Annuler</button>
+                                            </div>
                                         </div>
-                                    </div>
-                                ) : (
-                                    <div className="flex justify-between items-center">
-                                        <div>
-                                            <div className="font-bold text-gray-800">{product.name}</div>
-                                            <div className="text-sm text-gray-600">{product.description}</div>
-                                            <div className="text-sm font-bold text-blue-600">{product.price} €</div>
+                                    ) : (
+                                        <div className="flex justify-between items-center">
+                                            <div className="flex-1">
+                                                <div className="flex items-center gap-2 mb-1">
+                                                    <span className="text-2xl">{p.icon}</span>
+                                                    <span className="font-bold">{p.name}</span>
+                                                    <span className="text-blue-400 font-bold">{p.price.toFixed(2)} €</span>
+                                                </div>
+                                                <div className="text-sm text-gray-400">{p.description}</div>
+                                                <div className="text-xs text-gray-500 mt-1">{p.category}</div>
+                                            </div>
+                                            <button onClick={() => startEdit(p)} className="btn-3d btn-primary ml-4">✏️ Modifier</button>
                                         </div>
-                                        <button
-                                            onClick={() => startEdit(product)}
-                                            className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
-                                        >
-                                            ✏️ Modifier
-                                        </button>
-                                    </div>
-                                )}
-                            </div>
-                        ))}
+                                    )}
+                                </div>
+                            ))}
+                        </div>
                     </div>
                 </div>
             );
         }
 
-        // Gestion utilisateurs (Admin)
+        // Users Manager
         function UsersManager({ currentUser, onBack }) {
             const [users, setUsers] = useState([]);
 
             useEffect(() => {
-                loadUsers();
+                setUsers(JSON.parse(localStorage.getItem('foloneo_users') || '[]'));
             }, []);
 
-            const loadUsers = () => {
-                const data = JSON.parse(localStorage.getItem('foloneo_users') || '[]');
-                setUsers(data);
-            };
-
             const toggleActive = (userId) => {
-                const updated = users.map(u => 
-                    u.id === userId ? {...u, active: !u.active} : u
-                );
-                localStorage.setItem('foloneo_users', JSON.stringify(updated));
+                if (userId === '1') { alert('Impossible de désactiver le compte admin principal'); return; }
+                const updated = users.map(u => u.id === userId ? {...u, active: !u.active} : u);
                 setUsers(updated);
+                localStorage.setItem('foloneo_users', JSON.stringify(updated));
             };
-
-            if (currentUser.role !== 'admin') {
-                return (
-                    <div className="space-y-6">
-                        <div className="flex items-center justify-between">
-                            <h2 className="text-2xl font-bold text-gray-800">👥 Gestion Utilisateurs</h2>
-                            <button onClick={onBack} className="back-button">
-                                ← Retour
-                            </button>
-                        </div>
-                        <div className="bg-white p-6 rounded-xl shadow-lg">
-                            <div className="text-center text-gray-600">
-                                Accès réservé aux administrateurs
-                            </div>
-                        </div>
-                    </div>
-                );
-            }
 
             return (
-                <div className="space-y-6">
+                <div className="space-y-6 fade-in">
                     <div className="flex items-center justify-between">
-                        <h2 className="text-2xl font-bold text-gray-800">👥 Gestion Utilisateurs</h2>
-                        <button onClick={onBack} className="back-button">
-                            ← Retour
-                        </button>
+                        <h2 className="text-3xl font-bold">👥 Gestion des Utilisateurs</h2>
+                        <button onClick={onBack} className="btn-3d btn-primary">← Retour</button>
                     </div>
-                    
-                    <div className="space-y-3">
-                        {users.map(user => (
-                            <div key={user.id} className="bg-white p-4 rounded-xl shadow-lg">
-                                <div className="flex justify-between items-center">
-                                    <div>
-                                        <div className="font-bold text-gray-800">
-                                            {user.username}
-                                            {user.role === 'admin' && <span className="ml-2 text-xs bg-purple-100 text-purple-700 px-2 py-1 rounded">ADMIN</span>}
+
+                    <div className="glass-card p-6">
+                        <div className="space-y-3">
+                            {users.map(u => (
+                                <div key={u.id} className="bg-white/5 rounded-xl p-4">
+                                    <div className="flex justify-between items-center">
+                                        <div className="flex-1">
+                                            <div className="flex items-center gap-2 mb-1">
+                                                <span className="font-bold">{u.username}</span>
+                                                {u.role === 'admin' && <span className="px-2 py-1 bg-blue-500 rounded text-xs">Admin</span>}
+                                                {!u.active && <span className="px-2 py-1 bg-red-500 rounded text-xs">Inactif</span>}
+                                            </div>
+                                            <div className="text-sm text-gray-400">{u.email}</div>
+                                            <div className="text-xs text-gray-500 mt-1">Créé le {new Date(u.createdAt).toLocaleDateString('fr-FR')}</div>
                                         </div>
-                                        <div className="text-sm text-gray-600">{user.email}</div>
-                                        <div className="text-xs text-gray-500">
-                                            Créé le {new Date(user.createdAt).toLocaleDateString('fr-FR')}
-                                        </div>
-                                    </div>
-                                    {user.id !== '1' && (
-                                        <button
-                                            onClick={() => toggleActive(user.id)}
-                                            className={`px-4 py-2 rounded-lg font-semibold ${
-                                                user.active 
-                                                ? 'bg-green-100 text-green-700' 
-                                                : 'bg-red-100 text-red-700'
-                                            }`}
-                                        >
-                                            {user.active ? '🟢 Actif' : '🔴 Inactif'}
+                                        <button onClick={() => toggleActive(u.id)} className={`btn-3d ${u.active ? 'btn-danger' : 'btn-success'} ml-4`}>
+                                            {u.active ? '🔒 Désactiver' : '🔓 Activer'}
                                         </button>
-                                    )}
+                                    </div>
                                 </div>
-                            </div>
-                        ))}
+                            ))}
+                        </div>
                     </div>
                 </div>
             );
         }
 
-        // Application principale
+        // Main App
         function App() {
             const [currentUser, setCurrentUser] = useState(null);
             const [currentPage, setCurrentPage] = useState('dashboard');
-            const [showUserMenu, setShowUserMenu] = useState(false);
-            const [ajaxProducts, setAjaxProducts] = useState([]);
-            const [dahuaProducts, setDahuaProducts] = useState([]);
             const [quotes, setQuotes] = useState([]);
+            const [showUserMenu, setShowUserMenu] = useState(false);
 
             useEffect(() => {
                 initializeData();
                 const stored = localStorage.getItem('foloneo_current_user');
-                if (stored) {
-                    setCurrentUser(JSON.parse(stored));
-                }
-                loadData();
+                if (stored) setCurrentUser(JSON.parse(stored));
+                loadQuotes();
             }, []);
 
-            const loadData = () => {
-                setAjaxProducts(JSON.parse(localStorage.getItem('foloneo_ajax_products') || '[]'));
-                setDahuaProducts(JSON.parse(localStorage.getItem('foloneo_dahua_products') || '[]'));
+            const loadQuotes = () => {
                 setQuotes(JSON.parse(localStorage.getItem('foloneo_quotes') || '[]'));
+            };
+
+            const saveQuote = (quote) => {
+                const allQuotes = JSON.parse(localStorage.getItem('foloneo_quotes') || '[]');
+                allQuotes.push(quote);
+                localStorage.setItem('foloneo_quotes', JSON.stringify(allQuotes));
+                loadQuotes();
+                setCurrentPage('dashboard');
             };
 
             const handleLogout = () => {
@@ -1074,62 +618,39 @@
                 setShowUserMenu(false);
             };
 
-            const saveQuote = (quote) => {
-                const allQuotes = JSON.parse(localStorage.getItem('foloneo_quotes') || '[]');
-                allQuotes.push(quote);
-                localStorage.setItem('foloneo_quotes', JSON.stringify(allQuotes));
-                setQuotes(allQuotes);
-                setCurrentPage('dashboard');
-                alert('✅ Devis enregistré avec succès !');
-            };
-
-            const goToDashboard = () => {
-                setCurrentPage('dashboard');
-            };
-
-            if (!currentUser) {
-                return <LoginScreen onLogin={setCurrentUser} />;
-            }
+            if (!currentUser) return <LoginScreen onLogin={setCurrentUser} />;
 
             return (
-                <div className="min-h-screen bg-gray-50">
+                <div className="min-h-screen">
                     {/* Header */}
-                    <div className="foloneo-gradient text-white p-4 shadow-lg sticky top-0 z-40">
+                    <div className="glass fixed top-0 left-0 right-0 z-50 p-4">
                         <div className="max-w-7xl mx-auto flex justify-between items-center">
-                            <div className="flex items-center space-x-3 cursor-pointer" onClick={goToDashboard}>
-                                <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center">
-                                    <span className="text-2xl font-bold text-blue-600">F</span>
+                            <div className="flex items-center gap-3 cursor-pointer" onClick={() => setCurrentPage('dashboard')}>
+                                <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl flex items-center justify-center shadow-lg">
+                                    <span className="text-2xl font-bold">F</span>
                                 </div>
                                 <div>
-                                    <h1 className="text-xl font-bold">Foloneo</h1>
-                                    <p className="text-sm opacity-90 hide-mobile">Générateur de Devis Pro</p>
+                                    <div className="text-xl font-bold">Foloneo Pro</div>
+                                    <div className="text-xs text-gray-400">Version Commerciale</div>
                                 </div>
                             </div>
-
                             <div className="relative">
-                                <button
-                                    onClick={() => setShowUserMenu(!showUserMenu)}
-                                    className="flex items-center space-x-2 bg-white/20 hover:bg-white/30 px-4 py-2 rounded-lg transition"
-                                >
-                                    <div className="w-8 h-8 bg-white rounded-full flex items-center justify-center">
-                                        <span className="text-blue-600 font-bold">{currentUser.username[0].toUpperCase()}</span>
+                                <button onClick={() => setShowUserMenu(!showUserMenu)} className="flex items-center gap-3 glass px-4 py-2 rounded-xl hover:bg-white/10 transition">
+                                    <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
+                                        <span className="font-bold">{currentUser.username[0].toUpperCase()}</span>
                                     </div>
-                                    <div className="text-left hide-mobile">
+                                    <div className="text-left hidden md:block">
                                         <div className="text-sm font-semibold">{currentUser.username}</div>
-                                        <div className="text-xs opacity-75">{currentUser.role === 'admin' ? 'Admin' : 'User'}</div>
+                                        <div className="text-xs text-gray-400">{currentUser.role === 'admin' ? 'Administrateur' : 'Commercial'}</div>
                                     </div>
                                 </button>
-
                                 {showUserMenu && (
-                                    <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-xl z-50">
-                                        <div className="p-3 border-b">
-                                            <div className="font-semibold text-gray-800">{currentUser.username}</div>
-                                            <div className="text-xs text-gray-600">{currentUser.email}</div>
+                                    <div className="absolute right-0 mt-2 w-56 glass-card p-2 fade-in">
+                                        <div className="p-3 border-b border-white/10">
+                                            <div className="font-semibold">{currentUser.username}</div>
+                                            <div className="text-sm text-gray-400">{currentUser.email}</div>
                                         </div>
-                                        <button
-                                            onClick={handleLogout}
-                                            className="w-full text-left px-4 py-2 text-red-600 hover:bg-red-50 rounded-b-lg"
-                                        >
+                                        <button onClick={handleLogout} className="w-full text-left px-4 py-2 text-red-400 hover:bg-red-500/20 rounded-lg transition mt-2">
                                             🚪 Déconnexion
                                         </button>
                                     </div>
@@ -1138,45 +659,33 @@
                         </div>
                     </div>
 
-                    {/* Contenu */}
-                    <div className="max-w-7xl mx-auto p-4 content-with-mobile-menu">
+                    {/* Content */}
+                    <div className="max-w-7xl mx-auto p-4 pt-24 content-padding">
                         {currentPage === 'dashboard' && <Dashboard quotes={quotes} />}
-                        {currentPage === 'quotes' && <QuoteCreator ajaxProducts={ajaxProducts} dahuaProducts={dahuaProducts} onSave={saveQuote} onBack={goToDashboard} />}
-                        {currentPage === 'products' && <ProductsManager ajaxProducts={ajaxProducts} dahuaProducts={dahuaProducts} onUpdate={loadData} onBack={goToDashboard} />}
-                        {currentPage === 'users' && <UsersManager currentUser={currentUser} onBack={goToDashboard} />}
+                        {currentPage === 'quotes' && <QuoteCreator onSave={saveQuote} onBack={() => setCurrentPage('dashboard')} />}
+                        {currentPage === 'products' && <ProductsManager onBack={() => setCurrentPage('dashboard')} />}
+                        {currentPage === 'users' && currentUser.role === 'admin' && <UsersManager currentUser={currentUser} onBack={() => setCurrentPage('dashboard')} />}
                     </div>
 
-                    {/* Menu mobile */}
-                    <div className="mobile-menu">
-                        <div className="flex justify-around max-w-7xl mx-auto">
-                            <button
-                                onClick={() => setCurrentPage('dashboard')}
-                                className={`flex flex-col items-center py-2 px-4 ${currentPage === 'dashboard' ? 'text-blue-600' : 'text-gray-600'}`}
-                            >
+                    {/* Mobile Navigation */}
+                    <div className="mobile-bar">
+                        <div className="flex justify-around">
+                            <button onClick={() => setCurrentPage('dashboard')} className={`mobile-nav-btn ${currentPage === 'dashboard' ? 'active' : ''}`}>
                                 <span className="text-2xl">📊</span>
-                                <span className="text-xs mt-1">Dashboard</span>
+                                <span className="text-xs font-medium">Dashboard</span>
                             </button>
-                            <button
-                                onClick={() => setCurrentPage('quotes')}
-                                className={`flex flex-col items-center py-2 px-4 ${currentPage === 'quotes' ? 'text-blue-600' : 'text-gray-600'}`}
-                            >
+                            <button onClick={() => setCurrentPage('quotes')} className={`mobile-nav-btn ${currentPage === 'quotes' ? 'active' : ''}`}>
                                 <span className="text-2xl">📝</span>
-                                <span className="text-xs mt-1">Devis</span>
+                                <span className="text-xs font-medium">Devis</span>
                             </button>
-                            <button
-                                onClick={() => setCurrentPage('products')}
-                                className={`flex flex-col items-center py-2 px-4 ${currentPage === 'products' ? 'text-blue-600' : 'text-gray-600'}`}
-                            >
+                            <button onClick={() => setCurrentPage('products')} className={`mobile-nav-btn ${currentPage === 'products' ? 'active' : ''}`}>
                                 <span className="text-2xl">📦</span>
-                                <span className="text-xs mt-1">Produits</span>
+                                <span className="text-xs font-medium">Produits</span>
                             </button>
                             {currentUser.role === 'admin' && (
-                                <button
-                                    onClick={() => setCurrentPage('users')}
-                                    className={`flex flex-col items-center py-2 px-4 ${currentPage === 'users' ? 'text-blue-600' : 'text-gray-600'}`}
-                                >
+                                <button onClick={() => setCurrentPage('users')} className={`mobile-nav-btn ${currentPage === 'users' ? 'active' : ''}`}>
                                     <span className="text-2xl">👥</span>
-                                    <span className="text-xs mt-1">Users</span>
+                                    <span className="text-xs font-medium">Users</span>
                                 </button>
                             )}
                         </div>
