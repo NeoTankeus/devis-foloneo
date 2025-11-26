@@ -9,165 +9,219 @@
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { 
-            font-family: 'Inter', sans-serif; 
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        html {
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
             background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            background-attachment: fixed;
             color: white;
             min-height: 100vh;
+            overflow-x: hidden;
+            /* Support iPhone safe areas */
+            padding-bottom: env(safe-area-inset-bottom);
         }
-        .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 16px;
+            padding-bottom: calc(80px + env(safe-area-inset-bottom));
+        }
+
         .card {
             background: rgba(255, 255, 255, 0.08);
-            backdrop-filter: blur(10px);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
             border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 16px;
-            padding: 24px;
-            margin-bottom: 20px;
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 16px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
+
         .btn {
-            padding: 12px 24px;
+            padding: 14px 24px;
             border: none;
-            border-radius: 12px;
+            border-radius: 14px;
             font-weight: 600;
             cursor: pointer;
-            transition: all 0.2s;
-            font-size: 14px;
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            font-size: 15px;
+            touch-action: manipulation;
+            user-select: none;
+            -webkit-user-select: none;
+            min-height: 48px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
         }
+
+        .btn:active {
+            transform: scale(0.96);
+        }
+
         .btn-primary {
             background: linear-gradient(135deg, #3b82f6, #2563eb);
             color: white;
-            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+            box-shadow: 0 4px 14px rgba(59, 130, 246, 0.4);
         }
-        .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 16px rgba(59, 130, 246, 0.6);
-        }
+
         .btn-success {
             background: linear-gradient(135deg, #10b981, #059669);
             color: white;
+            box-shadow: 0 4px 14px rgba(16, 185, 129, 0.4);
         }
-        .input {
+
+        .input, .search-bar {
             width: 100%;
-            padding: 12px 16px;
+            padding: 16px 18px;
             background: rgba(255, 255, 255, 0.08);
             border: 2px solid rgba(255, 255, 255, 0.1);
-            border-radius: 10px;
+            border-radius: 14px;
             color: white;
-            font-size: 14px;
-            margin-bottom: 12px;
+            font-size: 16px;
+            margin-bottom: 14px;
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            font-family: inherit;
+            min-height: 52px;
         }
-        .input:focus {
+
+        .input:focus, .search-bar:focus {
             outline: none;
             border-color: #3b82f6;
             background: rgba(255, 255, 255, 0.12);
+            box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
         }
-        .input::placeholder { color: rgba(255, 255, 255, 0.4); }
+
+        .input::placeholder, .search-bar::placeholder {
+            color: rgba(255, 255, 255, 0.4);
+        }
+
         .product-item {
-            background: rgba(255, 255, 255, 0.05);
-            padding: 16px;
-            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.06);
+            padding: 18px;
+            border-radius: 16px;
             margin-bottom: 12px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            transition: all 0.2s;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            border: 1px solid rgba(255, 255, 255, 0.05);
         }
-        .product-item:hover {
-            background: rgba(59, 130, 246, 0.1);
-            transform: translateX(4px);
+
+        .product-item:active {
+            background: rgba(59, 130, 246, 0.12);
+            transform: scale(0.98);
         }
+
         .stat-card {
             background: linear-gradient(135deg, rgba(59, 130, 246, 0.2), rgba(37, 99, 235, 0.1));
             border: 1px solid rgba(59, 130, 246, 0.3);
-            border-radius: 16px;
-            padding: 24px;
+            border-radius: 18px;
+            padding: 22px;
             text-align: center;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
-        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; }
-        h1 { font-size: 32px; margin-bottom: 8px; }
-        h2 { font-size: 24px; margin-bottom: 16px; }
-        h3 { font-size: 18px; margin-bottom: 12px; }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 14px;
+        }
+
+        h1 { font-size: clamp(24px, 6vw, 32px); margin-bottom: 8px; font-weight: 700; }
+        h2 { font-size: clamp(20px, 5vw, 24px); margin-bottom: 16px; font-weight: 700; }
+        h3 { font-size: clamp(16px, 4vw, 18px); margin-bottom: 12px; font-weight: 600; }
+
         .header {
-            background: rgba(255, 255, 255, 0.05);
-            backdrop-filter: blur(10px);
-            padding: 16px 24px;
-            margin-bottom: 24px;
-            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.06);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            padding: 14px 16px;
+            padding-top: calc(14px + env(safe-area-inset-top));
+            margin-bottom: 20px;
+            border-radius: 0 0 20px 20px;
             display: flex;
             justify-content: space-between;
             align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
         }
-        .logo { display: flex; align-items: center; gap: 12px; cursor: pointer; }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
         .logo-icon {
-            width: 48px;
-            height: 48px;
+            width: 44px;
+            height: 44px;
             background: linear-gradient(135deg, #3b82f6, #2563eb);
             border-radius: 12px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 24px;
+            font-size: 22px;
             font-weight: bold;
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
         }
-        .tabs {
-            display: flex;
-            gap: 8px;
-            margin-bottom: 16px;
-        }
-        .tab {
-            flex: 1;
-            padding: 12px;
-            background: rgba(255, 255, 255, 0.05);
-            border: none;
-            border-radius: 10px;
-            color: white;
-            cursor: pointer;
-            font-weight: 600;
-        }
-        .tab.active {
-            background: linear-gradient(135deg, #3b82f6, #2563eb);
-        }
-        .search-bar {
-            width: 100%;
-            padding: 14px 20px;
-            background: rgba(255, 255, 255, 0.08);
-            border: 2px solid rgba(255, 255, 255, 0.1);
-            border-radius: 12px;
-            color: white;
-            font-size: 16px;
-            margin-bottom: 16px;
-        }
-        .search-bar:focus {
-            outline: none;
-            border-color: #3b82f6;
-        }
+
         .btn-add {
-            width: 40px;
-            height: 40px;
+            min-width: 46px;
+            min-height: 46px;
+            width: 46px;
+            height: 46px;
             border-radius: 50%;
             background: linear-gradient(135deg, #3b82f6, #2563eb);
             border: none;
             color: white;
-            font-size: 24px;
+            font-size: 26px;
             cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
-            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+            box-shadow: 0 4px 14px rgba(59, 130, 246, 0.4);
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            flex-shrink: 0;
+            touch-action: manipulation;
         }
+
         .btn-add:active {
-            transform: scale(0.9);
+            transform: scale(0.88);
         }
+
         .quantity-controls {
             display: flex;
             align-items: center;
-            gap: 12px;
+            gap: 14px;
+            flex-wrap: wrap;
         }
+
         .quantity-btn {
-            width: 32px;
-            height: 32px;
-            border-radius: 8px;
+            min-width: 40px;
+            min-height: 40px;
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
             background: rgba(255, 255, 255, 0.1);
             border: 1px solid rgba(255, 255, 255, 0.2);
             color: white;
@@ -176,57 +230,124 @@
             align-items: center;
             justify-content: center;
             font-weight: bold;
+            font-size: 18px;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            touch-action: manipulation;
         }
+
+        .quantity-btn:active {
+            transform: scale(0.9);
+            background: rgba(255, 255, 255, 0.15);
+        }
+
         .mobile-nav {
             position: fixed;
             bottom: 0;
             left: 0;
             right: 0;
-            background: rgba(15, 23, 42, 0.95);
-            backdrop-filter: blur(10px);
-            padding: 12px;
+            background: rgba(15, 23, 42, 0.98);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            padding: 10px 8px;
+            padding-bottom: calc(10px + env(safe-area-inset-bottom));
             display: flex;
             justify-content: space-around;
             border-top: 1px solid rgba(255, 255, 255, 0.1);
+            z-index: 1000;
+            box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.3);
         }
+
         .mobile-nav-btn {
             flex: 1;
-            padding: 8px;
+            padding: 10px 8px;
             background: none;
             border: none;
-            color: rgba(255, 255, 255, 0.6);
+            color: rgba(255, 255, 255, 0.5);
             cursor: pointer;
             display: flex;
             flex-direction: column;
             align-items: center;
             gap: 4px;
-            border-radius: 8px;
+            border-radius: 12px;
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            touch-action: manipulation;
+            user-select: none;
+            -webkit-user-select: none;
+            min-height: 56px;
         }
+
         .mobile-nav-btn.active {
-            background: rgba(59, 130, 246, 0.2);
-            color: #3b82f6;
+            background: rgba(59, 130, 246, 0.18);
+            color: #60a5fa;
         }
+
+        .mobile-nav-btn:active {
+            transform: scale(0.94);
+        }
+
         @media (min-width: 768px) {
             .mobile-nav { display: none; }
+            .container { padding: 24px; padding-bottom: 24px; }
         }
-        .content { padding-bottom: 80px; }
+
+        @media (max-width: 767px) {
+            .btn { font-size: 14px; padding: 12px 20px; }
+            .card { padding: 16px; border-radius: 18px; }
+            .grid { grid-template-columns: 1fr; gap: 12px; }
+            .header { padding: 12px 14px; }
+            .logo-icon { width: 40px; height: 40px; font-size: 20px; }
+        }
+
+        .content {
+            padding-bottom: calc(90px + env(safe-area-inset-bottom));
+        }
+
         .toast {
             position: fixed;
-            top: 20px;
+            top: calc(20px + env(safe-area-inset-top));
             right: 20px;
+            left: 20px;
+            max-width: 400px;
+            margin: 0 auto;
             background: linear-gradient(135deg, #10b981, #059669);
-            padding: 16px 24px;
-            border-radius: 12px;
-            box-shadow: 0 8px 24px rgba(16, 185, 129, 0.4);
+            padding: 16px 20px;
+            border-radius: 14px;
+            box-shadow: 0 8px 28px rgba(16, 185, 129, 0.4);
             display: flex;
             align-items: center;
+            justify-content: center;
             gap: 8px;
-            animation: slideIn 0.3s;
-            z-index: 1000;
+            animation: slideInDown 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 10000;
+            font-weight: 600;
         }
-        @keyframes slideIn {
-            from { transform: translateX(400px); opacity: 0; }
-            to { transform: translateX(0); opacity: 1; }
+
+        @keyframes slideInDown {
+            from {
+                transform: translateY(-100px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        /* Optimisations de performance */
+        .card, .product-item, .btn, .mobile-nav-btn {
+            will-change: transform;
+        }
+
+        /* Smooth scrolling pour iOS */
+        * {
+            -webkit-overflow-scrolling: touch;
+        }
+
+        /* Désactiver le zoom sur les inputs pour iOS */
+        @media (max-width: 767px) {
+            input, select, textarea {
+                font-size: 16px !important;
+            }
         }
     </style>
 </head>
@@ -235,25 +356,22 @@
     <script type="text/babel">
         const { useState, useEffect } = React;
 
-        // Données produits
-        const ajaxProducts = [
-            { id: 'ajax1', name: 'Hub', price: 108.09, category: 'Centrales' },
-            { id: 'ajax2', name: 'Hub 2', price: 151.79, category: 'Centrales' },
-            { id: 'ajax3', name: 'Hub 2 - 4G', price: 227.13, category: 'Centrales' },
-            { id: 'ajax4', name: 'Hub 2 Plus', price: 259.4, category: 'Centrales' },
-            { id: 'ajax5', name: 'DoorProtect', price: 23.9, category: 'Détecteurs' },
-            { id: 'ajax6', name: 'MotionProtect', price: 40.55, category: 'Détecteurs' },
-            { id: 'ajax7', name: 'FireProtect', price: 47.27, category: 'Détecteurs' },
-            { id: 'ajax8', name: 'KeyPad Plus', price: 81.05, category: 'Claviers' },
-            { id: 'ajax9', name: 'HomeSiren', price: 40.55, category: 'Sirènes' },
-            { id: 'ajax10', name: 'StreetSiren', price: 176.74, category: 'Sirènes' },
-        ];
-
-        const dahuaProducts = [
-            { id: 'dahua1', name: 'NVR 4 canaux', price: 299, category: 'Enregistreurs' },
-            { id: 'dahua2', name: 'NVR 8 canaux', price: 449, category: 'Enregistreurs' },
-            { id: 'dahua3', name: 'Caméra Dôme 4MP', price: 159, category: 'Caméras' },
-            { id: 'dahua4', name: 'Caméra Tube 4MP', price: 179, category: 'Caméras' },
+        // Produits par défaut (utilisés uniquement pour l'initialisation)
+        const defaultProducts = [
+            { id: 'ajax1', name: 'Hub', price: 108.09, category: 'Centrales', supplier: 'Ajax' },
+            { id: 'ajax2', name: 'Hub 2', price: 151.79, category: 'Centrales', supplier: 'Ajax' },
+            { id: 'ajax3', name: 'Hub 2 - 4G', price: 227.13, category: 'Centrales', supplier: 'Ajax' },
+            { id: 'ajax4', name: 'Hub 2 Plus', price: 259.4, category: 'Centrales', supplier: 'Ajax' },
+            { id: 'ajax5', name: 'DoorProtect', price: 23.9, category: 'Détecteurs', supplier: 'Ajax' },
+            { id: 'ajax6', name: 'MotionProtect', price: 40.55, category: 'Détecteurs', supplier: 'Ajax' },
+            { id: 'ajax7', name: 'FireProtect', price: 47.27, category: 'Détecteurs', supplier: 'Ajax' },
+            { id: 'ajax8', name: 'KeyPad Plus', price: 81.05, category: 'Claviers', supplier: 'Ajax' },
+            { id: 'ajax9', name: 'HomeSiren', price: 40.55, category: 'Sirènes', supplier: 'Ajax' },
+            { id: 'ajax10', name: 'StreetSiren', price: 176.74, category: 'Sirènes', supplier: 'Ajax' },
+            { id: 'dahua1', name: 'NVR 4 canaux', price: 299, category: 'Enregistreurs', supplier: 'Dahua' },
+            { id: 'dahua2', name: 'NVR 8 canaux', price: 449, category: 'Enregistreurs', supplier: 'Dahua' },
+            { id: 'dahua3', name: 'Caméra Dôme 4MP', price: 159, category: 'Caméras', supplier: 'Dahua' },
+            { id: 'dahua4', name: 'Caméra Tube 4MP', price: 179, category: 'Caméras', supplier: 'Dahua' },
         ];
 
         // Init
@@ -266,9 +384,20 @@
             if (!localStorage.getItem('foloneo_quotes')) {
                 localStorage.setItem('foloneo_quotes', JSON.stringify([]));
             }
-            if (!localStorage.getItem('foloneo_custom_products')) {
-                localStorage.setItem('foloneo_custom_products', JSON.stringify([]));
+            // Initialiser avec tous les produits par défaut s'ils n'existent pas
+            if (!localStorage.getItem('foloneo_products')) {
+                localStorage.setItem('foloneo_products', JSON.stringify(defaultProducts));
             }
+        }
+
+        // Fonction pour charger tous les produits
+        function loadAllProducts() {
+            return JSON.parse(localStorage.getItem('foloneo_products') || '[]');
+        }
+
+        // Fonction pour sauvegarder tous les produits
+        function saveAllProducts(products) {
+            localStorage.setItem('foloneo_products', JSON.stringify(products));
         }
 
         // Login
@@ -368,14 +497,13 @@
             );
         }
 
-        // Product Manager
+        // Product Manager - Tous les produits sont modifiables
         function ProductManager({ onBack, onProductsChange }) {
-            const [customProducts, setCustomProducts] = useState([]);
+            const [products, setProducts] = useState([]);
             const [search, setSearch] = useState('');
-            const [tab, setTab] = useState('custom');
             const [showForm, setShowForm] = useState(false);
             const [editingProduct, setEditingProduct] = useState(null);
-            const [formData, setFormData] = useState({ name: '', price: '', category: '', supplier: 'custom' });
+            const [formData, setFormData] = useState({ name: '', price: '', category: '', supplier: '' });
             const [toast, setToast] = useState('');
 
             useEffect(() => {
@@ -383,49 +511,45 @@
             }, []);
 
             const loadProducts = () => {
-                const stored = JSON.parse(localStorage.getItem('foloneo_custom_products') || '[]');
-                setCustomProducts(stored);
-            };
-
-            const saveProducts = (products) => {
-                localStorage.setItem('foloneo_custom_products', JSON.stringify(products));
-                setCustomProducts(products);
-                if (onProductsChange) onProductsChange();
+                const allProducts = loadAllProducts();
+                setProducts(allProducts);
             };
 
             const showToast = (message) => {
                 setToast(message);
-                setTimeout(() => setToast(''), 2000);
+                setTimeout(() => setToast(''), 2500);
             };
 
             const handleSubmit = (e) => {
                 e.preventDefault();
                 if (!formData.name || !formData.price || !formData.category) {
-                    alert('Veuillez remplir tous les champs');
+                    alert('Veuillez remplir tous les champs obligatoires');
                     return;
                 }
 
                 const product = {
-                    id: editingProduct ? editingProduct.id : `custom_${Date.now()}`,
-                    name: formData.name,
+                    id: editingProduct ? editingProduct.id : `prod_${Date.now()}`,
+                    name: formData.name.trim(),
                     price: parseFloat(formData.price),
-                    category: formData.category,
-                    supplier: 'custom'
+                    category: formData.category.trim(),
+                    supplier: formData.supplier.trim() || 'Autre'
                 };
 
                 let updated;
                 if (editingProduct) {
-                    updated = customProducts.map(p => p.id === editingProduct.id ? product : p);
-                    showToast('Produit modifié avec succès');
+                    updated = products.map(p => p.id === editingProduct.id ? product : p);
+                    showToast('✓ Produit modifié avec succès');
                 } else {
-                    updated = [...customProducts, product];
-                    showToast('Produit ajouté avec succès');
+                    updated = [...products, product];
+                    showToast('✓ Produit ajouté avec succès');
                 }
 
-                saveProducts(updated);
+                saveAllProducts(updated);
+                setProducts(updated);
                 setShowForm(false);
                 setEditingProduct(null);
-                setFormData({ name: '', price: '', category: '', supplier: 'custom' });
+                setFormData({ name: '', price: '', category: '', supplier: '' });
+                if (onProductsChange) onProductsChange();
             };
 
             const handleEdit = (product) => {
@@ -434,49 +558,46 @@
                     name: product.name,
                     price: product.price.toString(),
                     category: product.category,
-                    supplier: 'custom'
+                    supplier: product.supplier || ''
                 });
                 setShowForm(true);
+                window.scrollTo({ top: 0, behavior: 'smooth' });
             };
 
             const handleDelete = (productId) => {
                 if (confirm('Êtes-vous sûr de vouloir supprimer ce produit ?')) {
-                    const updated = customProducts.filter(p => p.id !== productId);
-                    saveProducts(updated);
-                    showToast('Produit supprimé');
+                    const updated = products.filter(p => p.id !== productId);
+                    saveAllProducts(updated);
+                    setProducts(updated);
+                    showToast('✓ Produit supprimé');
+                    if (onProductsChange) onProductsChange();
                 }
             };
 
             const handleCancel = () => {
                 setShowForm(false);
                 setEditingProduct(null);
-                setFormData({ name: '', price: '', category: '', supplier: 'custom' });
+                setFormData({ name: '', price: '', category: '', supplier: '' });
             };
 
-            const getProducts = () => {
-                if (tab === 'ajax') return ajaxProducts;
-                if (tab === 'dahua') return dahuaProducts;
-                return customProducts;
-            };
-
-            const products = getProducts();
             const filtered = products.filter(p =>
                 p.name.toLowerCase().includes(search.toLowerCase()) ||
-                p.category.toLowerCase().includes(search.toLowerCase())
+                p.category.toLowerCase().includes(search.toLowerCase()) ||
+                (p.supplier && p.supplier.toLowerCase().includes(search.toLowerCase()))
             );
 
-            const isReadOnly = tab !== 'custom';
+            const categories = [...new Set(products.map(p => p.category))];
 
             return (
                 <div>
                     {toast && (
                         <div className="toast">
-                            <span style={{fontSize: '20px'}}>✓</span>
                             <span style={{fontWeight: '600'}}>{toast}</span>
                         </div>
                     )}
-                    <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px'}}>
-                        <h2>🛒 Gestion des Produits</h2>
+
+                    <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', flexWrap: 'wrap', gap: '12px'}}>
+                        <h2 style={{margin: 0}}>🛒 Gestion des Produits</h2>
                         <button onClick={onBack} className="btn btn-primary">← Retour</button>
                     </div>
 
@@ -491,6 +612,7 @@
                                     value={formData.name}
                                     onChange={(e) => setFormData({...formData, name: e.target.value})}
                                     required
+                                    autoFocus
                                 />
                                 <input
                                     type="number"
@@ -508,13 +630,24 @@
                                     placeholder="Catégorie *"
                                     value={formData.category}
                                     onChange={(e) => setFormData({...formData, category: e.target.value})}
+                                    list="categories"
                                     required
                                 />
-                                <div style={{display: 'flex', gap: '12px'}}>
-                                    <button type="submit" className="btn btn-success" style={{flex: 1}}>
+                                <datalist id="categories">
+                                    {categories.map(cat => <option key={cat} value={cat} />)}
+                                </datalist>
+                                <input
+                                    type="text"
+                                    className="input"
+                                    placeholder="Fournisseur (optionnel)"
+                                    value={formData.supplier}
+                                    onChange={(e) => setFormData({...formData, supplier: e.target.value})}
+                                />
+                                <div style={{display: 'flex', gap: '12px', flexWrap: 'wrap'}}>
+                                    <button type="submit" className="btn btn-success" style={{flex: 1, minWidth: '140px'}}>
                                         💾 {editingProduct ? 'Enregistrer' : 'Ajouter'}
                                     </button>
-                                    <button type="button" onClick={handleCancel} className="btn" style={{flex: 1, background: 'rgba(239, 68, 68, 0.2)', color: 'white'}}>
+                                    <button type="button" onClick={handleCancel} className="btn" style={{flex: 1, minWidth: '140px', background: 'rgba(239, 68, 68, 0.2)', color: 'white'}}>
                                         ✕ Annuler
                                     </button>
                                 </div>
@@ -523,96 +656,57 @@
                     ) : (
                         <>
                             <div className="card">
-                                <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px'}}>
-                                    <h3>📦 Catalogue</h3>
-                                    {tab === 'custom' && (
-                                        <button onClick={() => setShowForm(true)} className="btn btn-primary">
-                                            ➕ Nouveau produit
-                                        </button>
-                                    )}
-                                </div>
-                                <div className="tabs">
-                                    <button className={`tab ${tab === 'custom' ? 'active' : ''}`} onClick={() => setTab('custom')}>
-                                        Personnalisés ({customProducts.length})
-                                    </button>
-                                    <button className={`tab ${tab === 'ajax' ? 'active' : ''}`} onClick={() => setTab('ajax')}>
-                                        Ajax ({ajaxProducts.length})
-                                    </button>
-                                    <button className={`tab ${tab === 'dahua' ? 'active' : ''}`} onClick={() => setTab('dahua')}>
-                                        Dahua ({dahuaProducts.length})
+                                <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap', gap: '12px'}}>
+                                    <h3 style={{margin: 0}}>📦 Catalogue ({products.length})</h3>
+                                    <button onClick={() => setShowForm(true)} className="btn btn-primary">
+                                        ➕ Nouveau
                                     </button>
                                 </div>
                                 <input
                                     type="text"
                                     className="search-bar"
-                                    placeholder="🔍 Rechercher un produit..."
+                                    placeholder="🔍 Rechercher par nom, catégorie ou fournisseur..."
                                     value={search}
                                     onChange={(e) => setSearch(e.target.value)}
                                 />
-                                <div style={{maxHeight: '500px', overflowY: 'auto'}}>
+                                <div style={{maxHeight: '60vh', overflowY: 'auto', WebkitOverflowScrolling: 'touch'}}>
                                     {filtered.length === 0 ? (
                                         <div style={{textAlign: 'center', padding: '40px', color: 'rgba(255,255,255,0.4)'}}>
-                                            {tab === 'custom' ? 'Aucun produit personnalisé. Cliquez sur "Nouveau produit" pour en ajouter.' : 'Aucun produit trouvé'}
+                                            {search ? 'Aucun produit trouvé' : 'Aucun produit. Cliquez sur "Nouveau" pour en ajouter.'}
                                         </div>
                                     ) : (
                                         filtered.map(p => (
-                                            <div key={p.id} className="product-item">
-                                                <div style={{flex: 1}}>
-                                                    <div style={{fontWeight: '600', marginBottom: '4px'}}>{p.name}</div>
-                                                    <div style={{fontSize: '14px', color: 'rgba(255,255,255,0.6)'}}>{p.category}</div>
-                                                    <div style={{fontSize: '18px', fontWeight: 'bold', color: '#3b82f6', marginTop: '4px'}}>
-                                                        {p.price.toFixed(2)} €
+                                            <div key={p.id} className="product-item" style={{flexDirection: 'column', alignItems: 'stretch', gap: '12px'}}>
+                                                <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start'}}>
+                                                    <div style={{flex: 1}}>
+                                                        <div style={{fontWeight: '600', marginBottom: '4px', fontSize: '16px'}}>{p.name}</div>
+                                                        <div style={{fontSize: '13px', color: 'rgba(255,255,255,0.5)', marginBottom: '4px'}}>
+                                                            {p.category} {p.supplier && `• ${p.supplier}`}
+                                                        </div>
+                                                        <div style={{fontSize: '20px', fontWeight: 'bold', color: '#3b82f6', marginTop: '6px'}}>
+                                                            {p.price.toFixed(2)} €
+                                                        </div>
                                                     </div>
                                                 </div>
-                                                {!isReadOnly && (
-                                                    <div style={{display: 'flex', gap: '8px'}}>
-                                                        <button
-                                                            onClick={() => handleEdit(p)}
-                                                            className="btn btn-primary"
-                                                            style={{padding: '8px 16px'}}
-                                                        >
-                                                            ✏️ Modifier
-                                                        </button>
-                                                        <button
-                                                            onClick={() => handleDelete(p.id)}
-                                                            className="btn"
-                                                            style={{padding: '8px 16px', background: 'rgba(239, 68, 68, 0.2)', color: 'white'}}
-                                                        >
-                                                            🗑️ Supprimer
-                                                        </button>
-                                                    </div>
-                                                )}
-                                                {isReadOnly && (
-                                                    <div style={{padding: '8px 16px', background: 'rgba(255,255,255,0.1)', borderRadius: '8px', fontSize: '12px', color: 'rgba(255,255,255,0.6)'}}>
-                                                        Lecture seule
-                                                    </div>
-                                                )}
+                                                <div style={{display: 'flex', gap: '8px', flexWrap: 'wrap'}}>
+                                                    <button
+                                                        onClick={() => handleEdit(p)}
+                                                        className="btn btn-primary"
+                                                        style={{flex: 1, minWidth: '120px', padding: '10px 16px'}}
+                                                    >
+                                                        ✏️ Modifier
+                                                    </button>
+                                                    <button
+                                                        onClick={() => handleDelete(p.id)}
+                                                        className="btn"
+                                                        style={{flex: 1, minWidth: '120px', padding: '10px 16px', background: 'rgba(239, 68, 68, 0.2)', color: 'white'}}
+                                                    >
+                                                        🗑️ Supprimer
+                                                    </button>
+                                                </div>
                                             </div>
                                         ))
                                     )}
-                                </div>
-                            </div>
-                            <div className="card">
-                                <h3>📊 Statistiques</h3>
-                                <div className="grid">
-                                    <div style={{background: 'rgba(59, 130, 246, 0.1)', padding: '16px', borderRadius: '12px'}}>
-                                        <div style={{fontSize: '14px', color: 'rgba(255,255,255,0.6)'}}>Produits personnalisés</div>
-                                        <div style={{fontSize: '28px', fontWeight: 'bold', color: '#3b82f6'}}>{customProducts.length}</div>
-                                    </div>
-                                    <div style={{background: 'rgba(59, 130, 246, 0.1)', padding: '16px', borderRadius: '12px'}}>
-                                        <div style={{fontSize: '14px', color: 'rgba(255,255,255,0.6)'}}>Produits Ajax</div>
-                                        <div style={{fontSize: '28px', fontWeight: 'bold', color: '#3b82f6'}}>{ajaxProducts.length}</div>
-                                    </div>
-                                    <div style={{background: 'rgba(59, 130, 246, 0.1)', padding: '16px', borderRadius: '12px'}}>
-                                        <div style={{fontSize: '14px', color: 'rgba(255,255,255,0.6)'}}>Produits Dahua</div>
-                                        <div style={{fontSize: '28px', fontWeight: 'bold', color: '#3b82f6'}}>{dahuaProducts.length}</div>
-                                    </div>
-                                    <div style={{background: 'rgba(16, 185, 129, 0.1)', padding: '16px', borderRadius: '12px'}}>
-                                        <div style={{fontSize: '14px', color: 'rgba(255,255,255,0.6)'}}>Total produits</div>
-                                        <div style={{fontSize: '28px', fontWeight: 'bold', color: '#10b981'}}>
-                                            {customProducts.length + ajaxProducts.length + dahuaProducts.length}
-                                        </div>
-                                    </div>
                                 </div>
                             </div>
                         </>
@@ -626,24 +720,20 @@
             const [clientName, setClientName] = useState('');
             const [cart, setCart] = useState([]);
             const [discount, setDiscount] = useState(0);
-            const [tab, setTab] = useState('ajax');
             const [search, setSearch] = useState('');
             const [toast, setToast] = useState('');
-            const [customProducts, setCustomProducts] = useState([]);
+            const [allProducts, setAllProducts] = useState([]);
 
             useEffect(() => {
-                const stored = JSON.parse(localStorage.getItem('foloneo_custom_products') || '[]');
-                setCustomProducts(stored);
+                const products = loadAllProducts();
+                setAllProducts(products);
             }, []);
 
-            const getProducts = () => {
-                if (tab === 'ajax') return ajaxProducts;
-                if (tab === 'dahua') return dahuaProducts;
-                return customProducts;
-            };
-
-            const products = getProducts();
-            const filtered = products.filter(p => p.name.toLowerCase().includes(search.toLowerCase()));
+            const filtered = allProducts.filter(p =>
+                p.name.toLowerCase().includes(search.toLowerCase()) ||
+                p.category.toLowerCase().includes(search.toLowerCase()) ||
+                (p.supplier && p.supplier.toLowerCase().includes(search.toLowerCase()))
+            );
 
             const addToCart = (product) => {
                 const existing = cart.find(item => item.id === product.id);
@@ -707,36 +797,33 @@
                         />
                     </div>
                     <div className="card">
-                        <h3>🛒 Produits</h3>
-                        <div className="tabs">
-                            <button className={`tab ${tab === 'custom' ? 'active' : ''}`} onClick={() => setTab('custom')}>
-                                Personnalisés ({customProducts.length})
-                            </button>
-                            <button className={`tab ${tab === 'ajax' ? 'active' : ''}`} onClick={() => setTab('ajax')}>
-                                Ajax ({ajaxProducts.length})
-                            </button>
-                            <button className={`tab ${tab === 'dahua' ? 'active' : ''}`} onClick={() => setTab('dahua')}>
-                                Dahua ({dahuaProducts.length})
-                            </button>
-                        </div>
+                        <h3>🛒 Produits ({allProducts.length})</h3>
                         <input
                             type="text"
                             className="search-bar"
-                            placeholder="🔍 Rechercher..."
+                            placeholder="🔍 Rechercher un produit..."
                             value={search}
                             onChange={(e) => setSearch(e.target.value)}
                         />
-                        <div style={{maxHeight: '400px', overflowY: 'auto'}}>
-                            {filtered.map(p => (
-                                <div key={p.id} className="product-item">
-                                    <div>
-                                        <div style={{fontWeight: '600', marginBottom: '4px'}}>{p.name}</div>
-                                        <div style={{fontSize: '14px', color: 'rgba(255,255,255,0.6)'}}>{p.category}</div>
-                                        <div style={{fontSize: '16px', fontWeight: 'bold', color: '#3b82f6', marginTop: '4px'}}>{p.price.toFixed(2)} €</div>
-                                    </div>
-                                    <button className="btn-add" onClick={() => addToCart(p)}>+</button>
+                        <div style={{maxHeight: '50vh', overflowY: 'auto', WebkitOverflowScrolling: 'touch'}}>
+                            {filtered.length === 0 ? (
+                                <div style={{textAlign: 'center', padding: '40px', color: 'rgba(255,255,255,0.4)'}}>
+                                    {search ? 'Aucun produit trouvé' : 'Aucun produit disponible'}
                                 </div>
-                            ))}
+                            ) : (
+                                filtered.map(p => (
+                                    <div key={p.id} className="product-item">
+                                        <div style={{flex: 1}}>
+                                            <div style={{fontWeight: '600', marginBottom: '4px'}}>{p.name}</div>
+                                            <div style={{fontSize: '13px', color: 'rgba(255,255,255,0.5)', marginBottom: '4px'}}>
+                                                {p.category} {p.supplier && `• ${p.supplier}`}
+                                            </div>
+                                            <div style={{fontSize: '18px', fontWeight: 'bold', color: '#3b82f6', marginTop: '4px'}}>{p.price.toFixed(2)} €</div>
+                                        </div>
+                                        <button className="btn-add" onClick={() => addToCart(p)}>+</button>
+                                    </div>
+                                ))
+                            )}
                         </div>
                     </div>
                     {cart.length > 0 && (
