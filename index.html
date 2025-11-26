@@ -266,6 +266,9 @@
             if (!localStorage.getItem('foloneo_quotes')) {
                 localStorage.setItem('foloneo_quotes', JSON.stringify([]));
             }
+            if (!localStorage.getItem('foloneo_custom_products')) {
+                localStorage.setItem('foloneo_custom_products', JSON.stringify([]));
+            }
         }
 
         // Login
@@ -365,6 +368,259 @@
             );
         }
 
+        // Product Manager
+        function ProductManager({ onBack, onProductsChange }) {
+            const [customProducts, setCustomProducts] = useState([]);
+            const [search, setSearch] = useState('');
+            const [tab, setTab] = useState('custom');
+            const [showForm, setShowForm] = useState(false);
+            const [editingProduct, setEditingProduct] = useState(null);
+            const [formData, setFormData] = useState({ name: '', price: '', category: '', supplier: 'custom' });
+            const [toast, setToast] = useState('');
+
+            useEffect(() => {
+                loadProducts();
+            }, []);
+
+            const loadProducts = () => {
+                const stored = JSON.parse(localStorage.getItem('foloneo_custom_products') || '[]');
+                setCustomProducts(stored);
+            };
+
+            const saveProducts = (products) => {
+                localStorage.setItem('foloneo_custom_products', JSON.stringify(products));
+                setCustomProducts(products);
+                if (onProductsChange) onProductsChange();
+            };
+
+            const showToast = (message) => {
+                setToast(message);
+                setTimeout(() => setToast(''), 2000);
+            };
+
+            const handleSubmit = (e) => {
+                e.preventDefault();
+                if (!formData.name || !formData.price || !formData.category) {
+                    alert('Veuillez remplir tous les champs');
+                    return;
+                }
+
+                const product = {
+                    id: editingProduct ? editingProduct.id : `custom_${Date.now()}`,
+                    name: formData.name,
+                    price: parseFloat(formData.price),
+                    category: formData.category,
+                    supplier: 'custom'
+                };
+
+                let updated;
+                if (editingProduct) {
+                    updated = customProducts.map(p => p.id === editingProduct.id ? product : p);
+                    showToast('Produit modifié avec succès');
+                } else {
+                    updated = [...customProducts, product];
+                    showToast('Produit ajouté avec succès');
+                }
+
+                saveProducts(updated);
+                setShowForm(false);
+                setEditingProduct(null);
+                setFormData({ name: '', price: '', category: '', supplier: 'custom' });
+            };
+
+            const handleEdit = (product) => {
+                setEditingProduct(product);
+                setFormData({
+                    name: product.name,
+                    price: product.price.toString(),
+                    category: product.category,
+                    supplier: 'custom'
+                });
+                setShowForm(true);
+            };
+
+            const handleDelete = (productId) => {
+                if (confirm('Êtes-vous sûr de vouloir supprimer ce produit ?')) {
+                    const updated = customProducts.filter(p => p.id !== productId);
+                    saveProducts(updated);
+                    showToast('Produit supprimé');
+                }
+            };
+
+            const handleCancel = () => {
+                setShowForm(false);
+                setEditingProduct(null);
+                setFormData({ name: '', price: '', category: '', supplier: 'custom' });
+            };
+
+            const getProducts = () => {
+                if (tab === 'ajax') return ajaxProducts;
+                if (tab === 'dahua') return dahuaProducts;
+                return customProducts;
+            };
+
+            const products = getProducts();
+            const filtered = products.filter(p =>
+                p.name.toLowerCase().includes(search.toLowerCase()) ||
+                p.category.toLowerCase().includes(search.toLowerCase())
+            );
+
+            const isReadOnly = tab !== 'custom';
+
+            return (
+                <div>
+                    {toast && (
+                        <div className="toast">
+                            <span style={{fontSize: '20px'}}>✓</span>
+                            <span style={{fontWeight: '600'}}>{toast}</span>
+                        </div>
+                    )}
+                    <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px'}}>
+                        <h2>🛒 Gestion des Produits</h2>
+                        <button onClick={onBack} className="btn btn-primary">← Retour</button>
+                    </div>
+
+                    {showForm ? (
+                        <div className="card">
+                            <h3>{editingProduct ? '✏️ Modifier le produit' : '➕ Nouveau produit'}</h3>
+                            <form onSubmit={handleSubmit}>
+                                <input
+                                    type="text"
+                                    className="input"
+                                    placeholder="Nom du produit *"
+                                    value={formData.name}
+                                    onChange={(e) => setFormData({...formData, name: e.target.value})}
+                                    required
+                                />
+                                <input
+                                    type="number"
+                                    className="input"
+                                    placeholder="Prix (€) *"
+                                    value={formData.price}
+                                    onChange={(e) => setFormData({...formData, price: e.target.value})}
+                                    step="0.01"
+                                    min="0"
+                                    required
+                                />
+                                <input
+                                    type="text"
+                                    className="input"
+                                    placeholder="Catégorie *"
+                                    value={formData.category}
+                                    onChange={(e) => setFormData({...formData, category: e.target.value})}
+                                    required
+                                />
+                                <div style={{display: 'flex', gap: '12px'}}>
+                                    <button type="submit" className="btn btn-success" style={{flex: 1}}>
+                                        💾 {editingProduct ? 'Enregistrer' : 'Ajouter'}
+                                    </button>
+                                    <button type="button" onClick={handleCancel} className="btn" style={{flex: 1, background: 'rgba(239, 68, 68, 0.2)', color: 'white'}}>
+                                        ✕ Annuler
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    ) : (
+                        <>
+                            <div className="card">
+                                <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px'}}>
+                                    <h3>📦 Catalogue</h3>
+                                    {tab === 'custom' && (
+                                        <button onClick={() => setShowForm(true)} className="btn btn-primary">
+                                            ➕ Nouveau produit
+                                        </button>
+                                    )}
+                                </div>
+                                <div className="tabs">
+                                    <button className={`tab ${tab === 'custom' ? 'active' : ''}`} onClick={() => setTab('custom')}>
+                                        Personnalisés ({customProducts.length})
+                                    </button>
+                                    <button className={`tab ${tab === 'ajax' ? 'active' : ''}`} onClick={() => setTab('ajax')}>
+                                        Ajax ({ajaxProducts.length})
+                                    </button>
+                                    <button className={`tab ${tab === 'dahua' ? 'active' : ''}`} onClick={() => setTab('dahua')}>
+                                        Dahua ({dahuaProducts.length})
+                                    </button>
+                                </div>
+                                <input
+                                    type="text"
+                                    className="search-bar"
+                                    placeholder="🔍 Rechercher un produit..."
+                                    value={search}
+                                    onChange={(e) => setSearch(e.target.value)}
+                                />
+                                <div style={{maxHeight: '500px', overflowY: 'auto'}}>
+                                    {filtered.length === 0 ? (
+                                        <div style={{textAlign: 'center', padding: '40px', color: 'rgba(255,255,255,0.4)'}}>
+                                            {tab === 'custom' ? 'Aucun produit personnalisé. Cliquez sur "Nouveau produit" pour en ajouter.' : 'Aucun produit trouvé'}
+                                        </div>
+                                    ) : (
+                                        filtered.map(p => (
+                                            <div key={p.id} className="product-item">
+                                                <div style={{flex: 1}}>
+                                                    <div style={{fontWeight: '600', marginBottom: '4px'}}>{p.name}</div>
+                                                    <div style={{fontSize: '14px', color: 'rgba(255,255,255,0.6)'}}>{p.category}</div>
+                                                    <div style={{fontSize: '18px', fontWeight: 'bold', color: '#3b82f6', marginTop: '4px'}}>
+                                                        {p.price.toFixed(2)} €
+                                                    </div>
+                                                </div>
+                                                {!isReadOnly && (
+                                                    <div style={{display: 'flex', gap: '8px'}}>
+                                                        <button
+                                                            onClick={() => handleEdit(p)}
+                                                            className="btn btn-primary"
+                                                            style={{padding: '8px 16px'}}
+                                                        >
+                                                            ✏️ Modifier
+                                                        </button>
+                                                        <button
+                                                            onClick={() => handleDelete(p.id)}
+                                                            className="btn"
+                                                            style={{padding: '8px 16px', background: 'rgba(239, 68, 68, 0.2)', color: 'white'}}
+                                                        >
+                                                            🗑️ Supprimer
+                                                        </button>
+                                                    </div>
+                                                )}
+                                                {isReadOnly && (
+                                                    <div style={{padding: '8px 16px', background: 'rgba(255,255,255,0.1)', borderRadius: '8px', fontSize: '12px', color: 'rgba(255,255,255,0.6)'}}>
+                                                        Lecture seule
+                                                    </div>
+                                                )}
+                                            </div>
+                                        ))
+                                    )}
+                                </div>
+                            </div>
+                            <div className="card">
+                                <h3>📊 Statistiques</h3>
+                                <div className="grid">
+                                    <div style={{background: 'rgba(59, 130, 246, 0.1)', padding: '16px', borderRadius: '12px'}}>
+                                        <div style={{fontSize: '14px', color: 'rgba(255,255,255,0.6)'}}>Produits personnalisés</div>
+                                        <div style={{fontSize: '28px', fontWeight: 'bold', color: '#3b82f6'}}>{customProducts.length}</div>
+                                    </div>
+                                    <div style={{background: 'rgba(59, 130, 246, 0.1)', padding: '16px', borderRadius: '12px'}}>
+                                        <div style={{fontSize: '14px', color: 'rgba(255,255,255,0.6)'}}>Produits Ajax</div>
+                                        <div style={{fontSize: '28px', fontWeight: 'bold', color: '#3b82f6'}}>{ajaxProducts.length}</div>
+                                    </div>
+                                    <div style={{background: 'rgba(59, 130, 246, 0.1)', padding: '16px', borderRadius: '12px'}}>
+                                        <div style={{fontSize: '14px', color: 'rgba(255,255,255,0.6)'}}>Produits Dahua</div>
+                                        <div style={{fontSize: '28px', fontWeight: 'bold', color: '#3b82f6'}}>{dahuaProducts.length}</div>
+                                    </div>
+                                    <div style={{background: 'rgba(16, 185, 129, 0.1)', padding: '16px', borderRadius: '12px'}}>
+                                        <div style={{fontSize: '14px', color: 'rgba(255,255,255,0.6)'}}>Total produits</div>
+                                        <div style={{fontSize: '28px', fontWeight: 'bold', color: '#10b981'}}>
+                                            {customProducts.length + ajaxProducts.length + dahuaProducts.length}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </>
+                    )}
+                </div>
+            );
+        }
+
         // Quote Creator
         function QuoteCreator({ onSave, onBack }) {
             const [clientName, setClientName] = useState('');
@@ -373,8 +629,20 @@
             const [tab, setTab] = useState('ajax');
             const [search, setSearch] = useState('');
             const [toast, setToast] = useState('');
+            const [customProducts, setCustomProducts] = useState([]);
 
-            const products = tab === 'ajax' ? ajaxProducts : dahuaProducts;
+            useEffect(() => {
+                const stored = JSON.parse(localStorage.getItem('foloneo_custom_products') || '[]');
+                setCustomProducts(stored);
+            }, []);
+
+            const getProducts = () => {
+                if (tab === 'ajax') return ajaxProducts;
+                if (tab === 'dahua') return dahuaProducts;
+                return customProducts;
+            };
+
+            const products = getProducts();
             const filtered = products.filter(p => p.name.toLowerCase().includes(search.toLowerCase()));
 
             const addToCart = (product) => {
@@ -441,6 +709,9 @@
                     <div className="card">
                         <h3>🛒 Produits</h3>
                         <div className="tabs">
+                            <button className={`tab ${tab === 'custom' ? 'active' : ''}`} onClick={() => setTab('custom')}>
+                                Personnalisés ({customProducts.length})
+                            </button>
                             <button className={`tab ${tab === 'ajax' ? 'active' : ''}`} onClick={() => setTab('ajax')}>
                                 Ajax ({ajaxProducts.length})
                             </button>
@@ -567,6 +838,7 @@
                     <div className="container content">
                         {page === 'dashboard' && <Dashboard quotes={quotes} />}
                         {page === 'quotes' && <QuoteCreator onSave={saveQuote} onBack={() => setPage('dashboard')} />}
+                        {page === 'products' && <ProductManager onBack={() => setPage('dashboard')} />}
                     </div>
                     <div className="mobile-nav">
                         <button className={`mobile-nav-btn ${page === 'dashboard' ? 'active' : ''}`} onClick={() => setPage('dashboard')}>
@@ -576,6 +848,10 @@
                         <button className={`mobile-nav-btn ${page === 'quotes' ? 'active' : ''}`} onClick={() => setPage('quotes')}>
                             <span style={{fontSize: '24px'}}>📝</span>
                             <span style={{fontSize: '11px'}}>Devis</span>
+                        </button>
+                        <button className={`mobile-nav-btn ${page === 'products' ? 'active' : ''}`} onClick={() => setPage('products')}>
+                            <span style={{fontSize: '24px'}}>🛒</span>
+                            <span style={{fontSize: '11px'}}>Produits</span>
                         </button>
                     </div>
                 </div>
