@@ -10,6 +10,12 @@ Une fois dans le dossier du projet, servez simplement la page HTML :
 ./serve.sh
 ```
 
-Puis ouvrez [http://localhost:3000](http://localhost:3000) dans votre navigateur.
+Vous pouvez modifier le port avec une variable d'environnement, par exemple :
+
+```bash
+PORT=8080 ./serve.sh
+```
+
+Puis ouvrez [http://localhost:3000](http://localhost:3000) (ou le port choisi) dans votre navigateur.
 
 L'application initialise automatiquement ses données (utilisateur admin/admin123, catalogue produits, devis vides) dans le `localStorage` du navigateur.
