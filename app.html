@@ -402,7 +402,7 @@
                                             <button class="quantity-btn" onclick="updateQty('${p.id}', ${cartItem.quantity + 1})">+</button>
                                             <button style="background: rgba(239, 68, 68, 0.2); border: 1px solid rgba(239, 68, 68, 0.4); color: #ef4444; width: 32px; height: 32px; border-radius: 8px; cursor: pointer;" onclick="removeFromCart('${p.id}')">×</button>
                                         </div>
-                                        <span style="font-weight: bold; color: #10b981;">${(p.price * cartItem.quantity).toFixed(2)} €</span>
+                                        <span style="font-weight: bold; color: #10b981;">${(displayPrice * cartItem.quantity).toFixed(2)} €</span>
                                     </div>
                                 ` : `
                                     <button class="btn btn-primary" style="width: 100%; margin-top: 12px;" onclick="addToCart('${p.id}')">+ Ajouter au devis</button>
@@ -607,6 +607,9 @@
             const quote = state.quotes.find(q => q.id === quoteId);
             if (!quote) return;
 
+            // Vérifier si le devis a été créé par un commercial (coefficient = 3)
+            const isCommercialQuote = quote.coefficient === 3;
+
             // Créer une version imprimable
             const printWindow = window.open('', '_blank');
             printWindow.document.write(`
@@ -646,14 +649,18 @@
                             </tr>
                         </thead>
                         <tbody>
-                            ${quote.items.map(item => `
+                            ${quote.items.map(item => {
+                                // Pour les devis commerciaux, afficher le prix de vente (×3)
+                                const displayPrice = isCommercialQuote ? item.price * 3 : item.price;
+                                return `
                                 <tr>
                                     <td>${item.name}</td>
-                                    <td>${item.price.toFixed(2)} €</td>
+                                    <td>${displayPrice.toFixed(2)} €</td>
                                     <td>${item.quantity}</td>
-                                    <td>${(item.price * item.quantity).toFixed(2)} €</td>
+                                    <td>${(displayPrice * item.quantity).toFixed(2)} €</td>
                                 </tr>
-                            `).join('')}
+                                `;
+                            }).join('')}
                             ${quote.installationDays > 0 ? `
                                 <tr>
                                     <td>Installation</td>
