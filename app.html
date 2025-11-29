@@ -383,6 +383,14 @@
                     { id: '1', username: 'admin', password: 'admin123', role: 'admin', active: true },
                     { id: '2', username: 'commercial', password: 'commercial123', role: 'commercial', active: true }
                 ]));
+            } else {
+                // Migration: ajouter le compte commercial s'il n'existe pas
+                const users = JSON.parse(localStorage.getItem('foloneo_users') || '[]');
+                const hasCommercial = users.find(u => u.username === 'commercial');
+                if (!hasCommercial) {
+                    users.push({ id: '2', username: 'commercial', password: 'commercial123', role: 'commercial', active: true });
+                    localStorage.setItem('foloneo_users', JSON.stringify(users));
+                }
             }
             if (!localStorage.getItem('foloneo_quotes')) {
                 localStorage.setItem('foloneo_quotes', JSON.stringify([]));
