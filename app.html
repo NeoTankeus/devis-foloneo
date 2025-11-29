@@ -7,6 +7,7 @@
     <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 
@@ -454,13 +455,119 @@
         }
 
         // Dashboard
-        function Dashboard({ quotes }) {
+        function Dashboard({ quotes, onDeleteQuote }) {
+            const [toast, setToast] = useState('');
             const total = quotes.length;
             const revenue = quotes.reduce((s, q) => s + q.total, 0);
             const avg = total > 0 ? revenue / total : 0;
 
+            const handleDelete = (quoteId, clientName) => {
+                if (confirm(`Êtes-vous sûr de vouloir supprimer le devis de ${clientName} ?`)) {
+                    onDeleteQuote(quoteId);
+                    setToast('✓ Devis supprimé');
+                    setTimeout(() => setToast(''), 2500);
+                }
+            };
+
+            const exportToPDF = (quote) => {
+                const { jsPDF } = window.jspdf;
+                const doc = new jsPDF();
+
+                // Titre
+                doc.setFontSize(20);
+                doc.setTextColor(37, 99, 235);
+                doc.text('DEVIS - Foloneo Pro', 105, 20, { align: 'center' });
+
+                // Informations client
+                doc.setFontSize(12);
+                doc.setTextColor(0, 0, 0);
+                doc.text(`Client: ${quote.clientName}`, 20, 40);
+                doc.text(`Date: ${new Date(quote.date).toLocaleDateString('fr-FR')}`, 20, 48);
+                doc.text(`Devis N°: ${quote.id}`, 20, 56);
+
+                // Ligne de séparation
+                doc.setLineWidth(0.5);
+                doc.line(20, 62, 190, 62);
+
+                // En-têtes du tableau
+                let y = 72;
+                doc.setFontSize(10);
+                doc.setFont(undefined, 'bold');
+                doc.text('Produit', 20, y);
+                doc.text('Prix Unit.', 110, y);
+                doc.text('Qté', 145, y);
+                doc.text('Total', 170, y);
+
+                // Ligne sous en-têtes
+                y += 4;
+                doc.setLineWidth(0.3);
+                doc.line(20, y, 190, y);
+
+                // Produits
+                y += 8;
+                doc.setFont(undefined, 'normal');
+                quote.items.forEach((item, index) => {
+                    if (y > 270) {
+                        doc.addPage();
+                        y = 20;
+                    }
+                    doc.text(item.name.substring(0, 40), 20, y);
+                    doc.text(`${item.price.toFixed(2)} €`, 110, y);
+                    doc.text(item.quantity.toString(), 145, y);
+                    doc.text(`${(item.price * item.quantity).toFixed(2)} €`, 170, y);
+                    y += 8;
+                });
+
+                // Ligne de séparation avant totaux
+                y += 4;
+                doc.setLineWidth(0.5);
+                doc.line(20, y, 190, y);
+
+                // Calculs
+                y += 10;
+                doc.setFont(undefined, 'normal');
+                doc.text('Sous-total:', 130, y);
+                doc.text(`${quote.subtotal.toFixed(2)} €`, 170, y);
+
+                if (quote.discount > 0) {
+                    y += 8;
+                    doc.setTextColor(239, 68, 68);
+                    doc.text(`Remise (${quote.discount}%):`, 130, y);
+                    doc.text(`-${quote.discountAmount.toFixed(2)} €`, 170, y);
+                    doc.setTextColor(0, 0, 0);
+                }
+
+                if (quote.coefficient && quote.coefficient !== 1) {
+                    y += 8;
+                    doc.setTextColor(96, 165, 250);
+                    doc.text(`Coefficient (×${quote.coefficient}):`, 130, y);
+                    doc.text(`×${quote.coefficient}`, 170, y);
+                    doc.setTextColor(0, 0, 0);
+                }
+
+                // Total final
+                y += 12;
+                doc.setLineWidth(0.8);
+                doc.line(130, y - 4, 190, y - 4);
+                doc.setFontSize(14);
+                doc.setFont(undefined, 'bold');
+                doc.setTextColor(16, 185, 129);
+                doc.text('TOTAL:', 130, y);
+                doc.text(`${quote.total.toFixed(2)} €`, 170, y);
+
+                // Télécharger le PDF
+                doc.save(`Devis_${quote.clientName}_${quote.id}.pdf`);
+                setToast('✓ PDF exporté avec succès');
+                setTimeout(() => setToast(''), 2500);
+            };
+
             return (
                 <div>
+                    {toast && (
+                        <div className="toast">
+                            <span style={{fontWeight: '600'}}>{toast}</span>
+                        </div>
+                    )}
                     <h2>📊 Tableau de bord</h2>
                     <div className="grid">
                         <div className="stat-card">
@@ -483,12 +590,32 @@
                         <div className="card" style={{marginTop: '24px'}}>
                             <h3>📋 Derniers devis</h3>
                             {quotes.slice(-5).reverse().map(q => (
-                                <div key={q.id} style={{display: 'flex', justifyContent: 'space-between', padding: '12px', background: 'rgba(255,255,255,0.05)', borderRadius: '8px', marginBottom: '8px'}}>
-                                    <div>
-                                        <div style={{fontWeight: '600'}}>{q.clientName}</div>
-                                        <div style={{fontSize: '12px', color: 'rgba(255,255,255,0.6)'}}>{new Date(q.date).toLocaleDateString('fr-FR')}</div>
+                                <div key={q.id} style={{padding: '12px', background: 'rgba(255,255,255,0.05)', borderRadius: '12px', marginBottom: '10px'}}>
+                                    <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px'}}>
+                                        <div>
+                                            <div style={{fontWeight: '600', fontSize: '16px'}}>{q.clientName}</div>
+                                            <div style={{fontSize: '12px', color: 'rgba(255,255,255,0.6)', marginTop: '4px'}}>
+                                                {new Date(q.date).toLocaleDateString('fr-FR')}
+                                            </div>
+                                        </div>
+                                        <div style={{fontSize: '22px', fontWeight: 'bold', color: '#3b82f6'}}>{q.total.toFixed(2)} €</div>
                                     </div>
-                                    <div style={{fontSize: '20px', fontWeight: 'bold', color: '#3b82f6'}}>{q.total.toFixed(2)} €</div>
+                                    <div style={{display: 'flex', gap: '8px', flexWrap: 'wrap'}}>
+                                        <button
+                                            onClick={() => exportToPDF(q)}
+                                            className="btn btn-primary"
+                                            style={{flex: 1, minWidth: '140px', padding: '10px'}}
+                                        >
+                                            📄 Exporter PDF
+                                        </button>
+                                        <button
+                                            onClick={() => handleDelete(q.id, q.clientName)}
+                                            className="btn"
+                                            style={{flex: 1, minWidth: '140px', background: 'rgba(239, 68, 68, 0.2)', color: 'white', padding: '10px'}}
+                                        >
+                                            🗑️ Supprimer
+                                        </button>
+                                    </div>
                                 </div>
                             ))}
                         </div>
@@ -720,6 +847,7 @@
             const [clientName, setClientName] = useState('');
             const [cart, setCart] = useState([]);
             const [discount, setDiscount] = useState(0);
+            const [coefficient, setCoefficient] = useState(1);
             const [search, setSearch] = useState('');
             const [toast, setToast] = useState('');
             const [allProducts, setAllProducts] = useState([]);
@@ -756,7 +884,8 @@
 
             const subtotal = cart.reduce((s, item) => s + (item.price * item.quantity), 0);
             const discountAmount = subtotal * (discount / 100);
-            const total = subtotal - discountAmount;
+            const totalAfterDiscount = subtotal - discountAmount;
+            const total = totalAfterDiscount * coefficient;
 
             const handleSave = () => {
                 if (!clientName) { alert('Entrez le nom du client'); return; }
@@ -769,6 +898,7 @@
                     subtotal,
                     discount,
                     discountAmount,
+                    coefficient,
                     total
                 };
                 onSave(quote);
@@ -811,18 +941,38 @@
                                     {search ? 'Aucun produit trouvé' : 'Aucun produit disponible'}
                                 </div>
                             ) : (
-                                filtered.map(p => (
-                                    <div key={p.id} className="product-item">
-                                        <div style={{flex: 1}}>
-                                            <div style={{fontWeight: '600', marginBottom: '4px'}}>{p.name}</div>
-                                            <div style={{fontSize: '13px', color: 'rgba(255,255,255,0.5)', marginBottom: '4px'}}>
-                                                {p.category} {p.supplier && `• ${p.supplier}`}
+                                filtered.map(p => {
+                                    const cartItem = cart.find(item => item.id === p.id);
+                                    return (
+                                        <div key={p.id} className="product-item" style={{flexDirection: 'column', alignItems: 'stretch', gap: '12px'}}>
+                                            <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start'}}>
+                                                <div style={{flex: 1}}>
+                                                    <div style={{fontWeight: '600', marginBottom: '4px'}}>{p.name}</div>
+                                                    <div style={{fontSize: '13px', color: 'rgba(255,255,255,0.5)', marginBottom: '4px'}}>
+                                                        {p.category} {p.supplier && `• ${p.supplier}`}
+                                                    </div>
+                                                    <div style={{fontSize: '18px', fontWeight: 'bold', color: '#3b82f6', marginTop: '4px'}}>{p.price.toFixed(2)} €</div>
+                                                </div>
                                             </div>
-                                            <div style={{fontSize: '18px', fontWeight: 'bold', color: '#3b82f6', marginTop: '4px'}}>{p.price.toFixed(2)} €</div>
+                                            {cartItem ? (
+                                                <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px', background: 'rgba(16, 185, 129, 0.15)', borderRadius: '12px', border: '2px solid rgba(16, 185, 129, 0.3)'}}>
+                                                    <div className="quantity-controls">
+                                                        <button className="quantity-btn" onClick={() => updateQty(p.id, cartItem.quantity - 1)}>-</button>
+                                                        <span style={{fontWeight: 'bold', width: '40px', textAlign: 'center', fontSize: '16px'}}>{cartItem.quantity}</span>
+                                                        <button className="quantity-btn" onClick={() => updateQty(p.id, cartItem.quantity + 1)}>+</button>
+                                                    </div>
+                                                    <div style={{fontWeight: 'bold', color: '#10b981', fontSize: '18px'}}>
+                                                        {(p.price * cartItem.quantity).toFixed(2)} €
+                                                    </div>
+                                                </div>
+                                            ) : (
+                                                <button className="btn btn-primary" style={{width: '100%'}} onClick={() => addToCart(p)}>
+                                                    + Ajouter au devis
+                                                </button>
+                                            )}
                                         </div>
-                                        <button className="btn-add" onClick={() => addToCart(p)}>+</button>
-                                    </div>
-                                ))
+                                    );
+                                })
                             )}
                         </div>
                     </div>
@@ -846,16 +996,28 @@
                                 </div>
                             ))}
                             <div style={{marginTop: '20px', paddingTop: '20px', borderTop: '1px solid rgba(255,255,255,0.1)'}}>
-                                <div style={{display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '12px'}}>
-                                    <label style={{fontSize: '14px'}}>Remise %</label>
+                                <div style={{display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '12px', flexWrap: 'wrap'}}>
+                                    <label style={{fontSize: '14px', minWidth: '80px'}}>Remise %</label>
                                     <input
                                         type="number"
                                         className="input"
-                                        style={{width: '100px'}}
+                                        style={{width: '100px', marginBottom: '0'}}
                                         value={discount}
                                         onChange={(e) => setDiscount(Math.max(0, Math.min(100, Number(e.target.value))))}
                                         min="0"
                                         max="100"
+                                    />
+                                </div>
+                                <div style={{display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px', flexWrap: 'wrap'}}>
+                                    <label style={{fontSize: '14px', minWidth: '80px'}}>Coefficient</label>
+                                    <input
+                                        type="number"
+                                        className="input"
+                                        style={{width: '100px', marginBottom: '0'}}
+                                        value={coefficient}
+                                        onChange={(e) => setCoefficient(Math.max(0.1, Number(e.target.value) || 1))}
+                                        min="0.1"
+                                        step="0.1"
                                     />
                                 </div>
                                 <div style={{display: 'flex', justifyContent: 'space-between', marginBottom: '8px'}}>
@@ -866,6 +1028,18 @@
                                     <div style={{display: 'flex', justifyContent: 'space-between', marginBottom: '8px', color: '#ef4444'}}>
                                         <span>Remise ({discount}%):</span>
                                         <span style={{fontWeight: '600'}}>-{discountAmount.toFixed(2)} €</span>
+                                    </div>
+                                )}
+                                {discount > 0 && (
+                                    <div style={{display: 'flex', justifyContent: 'space-between', marginBottom: '8px'}}>
+                                        <span>Total après remise:</span>
+                                        <span style={{fontWeight: '600'}}>{totalAfterDiscount.toFixed(2)} €</span>
+                                    </div>
+                                )}
+                                {coefficient !== 1 && (
+                                    <div style={{display: 'flex', justifyContent: 'space-between', marginBottom: '8px', color: '#60a5fa'}}>
+                                        <span>Coefficient (×{coefficient}):</span>
+                                        <span style={{fontWeight: '600'}}>×{coefficient}</span>
                                     </div>
                                 )}
                                 <div style={{display: 'flex', justifyContent: 'space-between', fontSize: '24px', fontWeight: 'bold', paddingTop: '12px', borderTop: '1px solid rgba(255,255,255,0.1)'}}>
@@ -903,6 +1077,13 @@
                 setPage('dashboard');
             };
 
+            const deleteQuote = (quoteId) => {
+                const all = JSON.parse(localStorage.getItem('foloneo_quotes') || '[]');
+                const updated = all.filter(q => q.id !== quoteId);
+                localStorage.setItem('foloneo_quotes', JSON.stringify(updated));
+                setQuotes(updated);
+            };
+
             const logout = () => {
                 localStorage.removeItem('foloneo_current_user');
                 setUser(null);
@@ -923,7 +1104,7 @@
                         <button onClick={logout} className="btn btn-primary">🚪 Déconnexion</button>
                     </div>
                     <div className="container content">
-                        {page === 'dashboard' && <Dashboard quotes={quotes} />}
+                        {page === 'dashboard' && <Dashboard quotes={quotes} onDeleteQuote={deleteQuote} />}
                         {page === 'quotes' && <QuoteCreator onSave={saveQuote} onBack={() => setPage('dashboard')} />}
                         {page === 'products' && <ProductManager onBack={() => setPage('dashboard')} />}
                     </div>
