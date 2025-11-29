@@ -577,8 +577,28 @@
                 doc.setFontSize(14);
                 doc.setFont(undefined, 'bold');
                 doc.setTextColor(16, 185, 129);
-                doc.text('TOTAL:', 130, y);
+                doc.text('TOTAL HT:', 130, y);
                 doc.text(`${quote.total.toFixed(2)} €`, 170, y);
+
+                // Location mensuelle
+                if (quote.locationMensuelle && quote.locationMensuelle > 0) {
+                    y += 20;
+                    doc.setLineWidth(0.5);
+                    doc.setTextColor(59, 130, 246);
+                    doc.line(20, y - 8, 190, y - 8);
+                    doc.setFontSize(12);
+                    doc.setFont(undefined, 'bold');
+                    doc.text('PRIX À LA LOCATION (Prestation mensuelle):', 20, y);
+                    y += 8;
+                    doc.setFontSize(10);
+                    doc.setFont(undefined, 'normal');
+                    doc.text(`Calcul: (${quote.total.toFixed(2)} € × 7% × 5) + ${quote.total.toFixed(2)} € ÷ 48 mois`, 20, y);
+                    y += 10;
+                    doc.setFontSize(14);
+                    doc.setFont(undefined, 'bold');
+                    doc.text('Location mensuelle:', 130, y);
+                    doc.text(`${quote.locationMensuelle.toFixed(2)} € /mois`, 170, y);
+                }
 
                 // Télécharger le PDF
                 doc.save(`Devis_${quote.clientName}_${quote.id}.pdf`);
@@ -872,7 +892,7 @@
             const [clientName, setClientName] = useState('');
             const [cart, setCart] = useState([]);
             const [discount, setDiscount] = useState(0);
-            const [coefficient, setCoefficient] = useState(1);
+            const [coefficient, setCoefficient] = useState(0);
             const [installationDays, setInstallationDays] = useState(0);
             const [accessoiresQty, setAccessoiresQty] = useState(0);
             const [search, setSearch] = useState('');
@@ -915,7 +935,13 @@
             const subtotalWithServices = subtotal + installationAmount + accessoiresAmount;
             const discountAmount = subtotalWithServices * (discount / 100);
             const totalAfterDiscount = subtotalWithServices - discountAmount;
-            const total = totalAfterDiscount * coefficient;
+            const total = coefficient > 0 ? totalAfterDiscount * coefficient : totalAfterDiscount;
+
+            // Calcul de la location mensuelle
+            const locationBase = total * 0.07; // 7% du prix HT
+            const locationMultipliee = locationBase * 5;
+            const locationTotal = locationMultipliee + total;
+            const locationMensuelle = locationTotal / 48;
 
             const handleSave = () => {
                 if (!clientName) { alert('Entrez le nom du client'); return; }
@@ -936,7 +962,8 @@
                     discount,
                     discountAmount,
                     coefficient,
-                    total
+                    total,
+                    locationMensuelle
                 };
                 onSave(quote);
             };
@@ -1090,8 +1117,8 @@
                                         className="input"
                                         style={{width: '100px', marginBottom: '0'}}
                                         value={coefficient}
-                                        onChange={(e) => setCoefficient(Math.max(0.1, Number(e.target.value) || 1))}
-                                        min="0.1"
+                                        onChange={(e) => setCoefficient(Math.max(0, Number(e.target.value) || 0))}
+                                        min="0"
                                         step="0.1"
                                     />
                                 </div>
@@ -1129,15 +1156,29 @@
                                         <span style={{fontWeight: '600'}}>{totalAfterDiscount.toFixed(2)} €</span>
                                     </div>
                                 )}
-                                {coefficient !== 1 && (
+                                {coefficient > 0 && coefficient !== 1 && (
                                     <div style={{display: 'flex', justifyContent: 'space-between', marginBottom: '8px', color: '#60a5fa'}}>
                                         <span>Coefficient (×{coefficient}):</span>
                                         <span style={{fontWeight: '600'}}>×{coefficient}</span>
                                     </div>
                                 )}
                                 <div style={{display: 'flex', justifyContent: 'space-between', fontSize: '24px', fontWeight: 'bold', paddingTop: '12px', borderTop: '1px solid rgba(255,255,255,0.1)'}}>
-                                    <span>TOTAL:</span>
+                                    <span>TOTAL HT:</span>
                                     <span style={{color: '#10b981'}}>{total.toFixed(2)} €</span>
+                                </div>
+
+                                {/* Calcul de la location mensuelle */}
+                                <div style={{marginTop: '16px', paddingTop: '16px', borderTop: '2px solid rgba(255,255,255,0.15)', background: 'rgba(59, 130, 246, 0.1)', padding: '16px', borderRadius: '12px'}}>
+                                    <div style={{fontSize: '16px', fontWeight: '600', marginBottom: '12px', color: '#60a5fa'}}>
+                                        📅 Prix à la location (Prestation mensuelle)
+                                    </div>
+                                    <div style={{fontSize: '13px', color: 'rgba(255,255,255,0.6)', marginBottom: '8px'}}>
+                                        Calcul: ({total.toFixed(2)} € × 7% × 5) + {total.toFixed(2)} € ÷ 48 mois
+                                    </div>
+                                    <div style={{display: 'flex', justifyContent: 'space-between', fontSize: '20px', fontWeight: 'bold'}}>
+                                        <span>Location mensuelle:</span>
+                                        <span style={{color: '#60a5fa'}}>{locationMensuelle.toFixed(2)} € /mois</span>
+                                    </div>
                                 </div>
                             </div>
                             <button onClick={handleSave} className="btn btn-success" style={{width: '100%', marginTop: '20px'}}>
