@@ -218,27 +218,28 @@
         }
 
         .quantity-btn {
-            min-width: 40px;
-            min-height: 40px;
-            width: 40px;
-            height: 40px;
-            border-radius: 10px;
-            background: rgba(255, 255, 255, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.2);
+            min-width: 48px;
+            min-height: 48px;
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.12);
+            border: 2px solid rgba(255, 255, 255, 0.25);
             color: white;
             cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
             font-weight: bold;
-            font-size: 18px;
+            font-size: 20px;
             transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
             touch-action: manipulation;
         }
 
         .quantity-btn:active {
-            transform: scale(0.9);
-            background: rgba(255, 255, 255, 0.15);
+            transform: scale(0.92);
+            background: rgba(59, 130, 246, 0.3);
+            border-color: rgba(59, 130, 246, 0.5);
         }
 
         .mobile-nav {
@@ -473,134 +474,148 @@
                 const { jsPDF } = window.jspdf;
                 const doc = new jsPDF();
 
-                // Titre
-                doc.setFontSize(20);
-                doc.setTextColor(37, 99, 235);
-                doc.text('DEVIS - Foloneo Pro', 105, 20, { align: 'center' });
+                // En-tête avec fond bleu
+                doc.setFillColor(37, 99, 235);
+                doc.rect(0, 0, 210, 35, 'F');
 
-                // Informations client
-                doc.setFontSize(12);
+                // Logo et titre
+                doc.setTextColor(255, 255, 255);
+                doc.setFontSize(24);
+                doc.setFont(undefined, 'bold');
+                doc.text('FOLONEO PRO', 105, 15, { align: 'center' });
+                doc.setFontSize(14);
+                doc.setFont(undefined, 'normal');
+                doc.text('DEVIS', 105, 25, { align: 'center' });
+
+                // Informations devis et client
                 doc.setTextColor(0, 0, 0);
-                doc.text(`Client: ${quote.clientName}`, 20, 40);
-                doc.text(`Date: ${new Date(quote.date).toLocaleDateString('fr-FR')}`, 20, 48);
-                doc.text(`Devis N°: ${quote.id}`, 20, 56);
+                doc.setFontSize(11);
+                doc.setFont(undefined, 'bold');
+                doc.text(`Client:`, 20, 50);
+                doc.setFont(undefined, 'normal');
+                doc.text(quote.clientName, 45, 50);
+
+                doc.setFont(undefined, 'bold');
+                doc.text(`Date:`, 20, 58);
+                doc.setFont(undefined, 'normal');
+                doc.text(new Date(quote.date).toLocaleDateString('fr-FR'), 45, 58);
+
+                doc.setFont(undefined, 'bold');
+                doc.text(`Devis N°:`, 20, 66);
+                doc.setFont(undefined, 'normal');
+                doc.text(quote.id, 45, 66);
 
                 // Ligne de séparation
+                doc.setDrawColor(200, 200, 200);
                 doc.setLineWidth(0.5);
-                doc.line(20, 62, 190, 62);
+                doc.line(20, 75, 190, 75);
 
-                // En-têtes du tableau
-                let y = 72;
+                // Tableau des produits - En-tête avec fond gris
+                let y = 85;
+                doc.setFillColor(240, 240, 240);
+                doc.rect(20, y - 6, 170, 8, 'F');
                 doc.setFontSize(10);
                 doc.setFont(undefined, 'bold');
-                doc.text('Produit', 20, y);
-                doc.text('Prix Unit.', 110, y);
-                doc.text('Qté', 145, y);
-                doc.text('Total', 170, y);
-
-                // Ligne sous en-têtes
-                y += 4;
-                doc.setLineWidth(0.3);
-                doc.line(20, y, 190, y);
+                doc.setTextColor(0, 0, 0);
+                doc.text('Désignation', 22, y);
+                doc.text('P.U. HT', 115, y, { align: 'right' });
+                doc.text('Qté', 145, y, { align: 'center' });
+                doc.text('Total HT', 185, y, { align: 'right' });
 
                 // Produits
-                y += 8;
-                doc.setFont(undefined, 'normal');
-                quote.items.forEach((item, index) => {
-                    if (y > 270) {
-                        doc.addPage();
-                        y = 20;
-                    }
-                    doc.text(item.name.substring(0, 40), 20, y);
-                    doc.text(`${item.price.toFixed(2)} €`, 110, y);
-                    doc.text(item.quantity.toString(), 145, y);
-                    doc.text(`${(item.price * item.quantity).toFixed(2)} €`, 170, y);
-                    y += 8;
-                });
-
-                // Installation et Accessoires
-                if (quote.installationDays > 0) {
-                    if (y > 270) {
-                        doc.addPage();
-                        y = 20;
-                    }
-                    doc.text('Journée d\'installation', 20, y);
-                    doc.text('500.00 €', 110, y);
-                    doc.text(quote.installationDays.toString(), 145, y);
-                    doc.text(`${quote.installationAmount.toFixed(2)} €`, 170, y);
-                    y += 8;
-                }
-
-                if (quote.accessoiresQty > 0) {
-                    if (y > 270) {
-                        doc.addPage();
-                        y = 20;
-                    }
-                    doc.text('Accessoires', 20, y);
-                    doc.text('200.00 €', 110, y);
-                    doc.text(quote.accessoiresQty.toString(), 145, y);
-                    doc.text(`${quote.accessoiresAmount.toFixed(2)} €`, 170, y);
-                    y += 8;
-                }
-
-                // Ligne de séparation avant totaux
-                y += 4;
-                doc.setLineWidth(0.5);
-                doc.line(20, y, 190, y);
-
-                // Calculs
                 y += 10;
                 doc.setFont(undefined, 'normal');
-                doc.text('Sous-total:', 130, y);
-                doc.text(`${quote.subtotal.toFixed(2)} €`, 170, y);
+                doc.setFontSize(9);
+
+                quote.items.forEach((item) => {
+                    if (y > 260) {
+                        doc.addPage();
+                        y = 30;
+                    }
+                    doc.text(item.name.substring(0, 45), 22, y);
+                    doc.text(`${item.price.toFixed(2)} €`, 115, y, { align: 'right' });
+                    doc.text(item.quantity.toString(), 145, y, { align: 'center' });
+                    doc.text(`${(item.price * item.quantity).toFixed(2)} €`, 185, y, { align: 'right' });
+                    y += 7;
+                });
+
+                // Installation
+                if (quote.installationDays > 0) {
+                    if (y > 260) { doc.addPage(); y = 30; }
+                    doc.text('Installation', 22, y);
+                    doc.text('500.00 €', 115, y, { align: 'right' });
+                    doc.text(quote.installationDays.toString(), 145, y, { align: 'center' });
+                    doc.text(`${quote.installationAmount.toFixed(2)} €`, 185, y, { align: 'right' });
+                    y += 7;
+                }
+
+                // Accessoires
+                if (quote.accessoiresQty > 0) {
+                    if (y > 260) { doc.addPage(); y = 30; }
+                    doc.text('Accessoires', 22, y);
+                    doc.text('200.00 €', 115, y, { align: 'right' });
+                    doc.text(quote.accessoiresQty.toString(), 145, y, { align: 'center' });
+                    doc.text(`${quote.accessoiresAmount.toFixed(2)} €`, 185, y, { align: 'right' });
+                    y += 7;
+                }
+
+                // Ligne de fin de tableau
+                y += 3;
+                doc.setDrawColor(200, 200, 200);
+                doc.line(20, y, 190, y);
+
+                // Totaux
+                y += 12;
+                doc.setFontSize(10);
+                doc.setFont(undefined, 'normal');
+                doc.text('Sous-total HT:', 130, y);
+                doc.text(`${quote.subtotal.toFixed(2)} €`, 185, y, { align: 'right' });
 
                 if (quote.discount > 0) {
-                    y += 8;
-                    doc.setTextColor(239, 68, 68);
+                    y += 7;
+                    doc.setTextColor(200, 50, 50);
                     doc.text(`Remise (${quote.discount}%):`, 130, y);
-                    doc.text(`-${quote.discountAmount.toFixed(2)} €`, 170, y);
+                    doc.text(`-${quote.discountAmount.toFixed(2)} €`, 185, y, { align: 'right' });
                     doc.setTextColor(0, 0, 0);
                 }
 
-                if (quote.coefficient && quote.coefficient !== 1) {
-                    y += 8;
-                    doc.setTextColor(96, 165, 250);
+                if (quote.coefficient > 0 && quote.coefficient !== 1) {
+                    y += 7;
+                    doc.setTextColor(59, 130, 246);
                     doc.text(`Coefficient (×${quote.coefficient}):`, 130, y);
-                    doc.text(`×${quote.coefficient}`, 170, y);
+                    doc.text(`appliqué`, 185, y, { align: 'right' });
                     doc.setTextColor(0, 0, 0);
                 }
 
-                // Total final
+                // Total HT avec fond
                 y += 12;
-                doc.setLineWidth(0.8);
-                doc.line(130, y - 4, 190, y - 4);
-                doc.setFontSize(14);
+                doc.setFillColor(16, 185, 129);
+                doc.rect(125, y - 8, 65, 12, 'F');
+                doc.setFontSize(13);
                 doc.setFont(undefined, 'bold');
-                doc.setTextColor(16, 185, 129);
+                doc.setTextColor(255, 255, 255);
                 doc.text('TOTAL HT:', 130, y);
-                doc.text(`${quote.total.toFixed(2)} €`, 170, y);
+                doc.text(`${quote.total.toFixed(2)} €`, 185, y, { align: 'right' });
 
-                // Location mensuelle
+                // Location mensuelle avec fond bleu
                 if (quote.locationMensuelle && quote.locationMensuelle > 0) {
                     y += 20;
-                    doc.setLineWidth(0.5);
-                    doc.setTextColor(59, 130, 246);
-                    doc.line(20, y - 8, 190, y - 8);
+                    doc.setFillColor(59, 130, 246);
+                    doc.rect(20, y - 8, 170, 12, 'F');
                     doc.setFontSize(12);
                     doc.setFont(undefined, 'bold');
-                    doc.text('PRIX À LA LOCATION (Prestation mensuelle):', 20, y);
-                    y += 8;
-                    doc.setFontSize(10);
-                    doc.setFont(undefined, 'normal');
-                    doc.text(`Calcul: (${quote.total.toFixed(2)} € × 7% × 5) + ${quote.total.toFixed(2)} € ÷ 48 mois`, 20, y);
-                    y += 10;
-                    doc.setFontSize(14);
-                    doc.setFont(undefined, 'bold');
-                    doc.text('Location mensuelle:', 130, y);
-                    doc.text(`${quote.locationMensuelle.toFixed(2)} € /mois`, 170, y);
+                    doc.setTextColor(255, 255, 255);
+                    doc.text('LOCATION MENSUELLE:', 25, y);
+                    doc.text(`${quote.locationMensuelle.toFixed(2)} € /mois`, 185, y, { align: 'right' });
                 }
 
-                // Télécharger le PDF
+                // Pied de page
+                doc.setFontSize(8);
+                doc.setTextColor(120, 120, 120);
+                doc.setFont(undefined, 'normal');
+                doc.text('Foloneo Pro - Devis généré automatiquement', 105, 285, { align: 'center' });
+
+                // Télécharger
                 doc.save(`Devis_${quote.clientName}_${quote.id}.pdf`);
                 setToast('✓ PDF exporté avec succès');
                 setTimeout(() => setToast(''), 2500);
@@ -1079,21 +1094,22 @@
                                     </div>
                                 </div>
                             ))}
-                            <div style={{marginTop: '20px', paddingTop: '20px', borderTop: '1px solid rgba(255,255,255,0.1)'}}>
-                                <div style={{marginBottom: '16px', paddingBottom: '16px', borderBottom: '1px solid rgba(255,255,255,0.05)'}}>
-                                    <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px'}}>
-                                        <label style={{fontSize: '14px', fontWeight: '600'}}>Journée d'installation (500€/jour)</label>
+                            <div style={{marginTop: '24px', paddingTop: '24px', borderTop: '2px solid rgba(255,255,255,0.15)'}}>
+                                <div style={{marginBottom: '20px', paddingBottom: '20px', borderBottom: '1px solid rgba(255,255,255,0.1)', background: 'rgba(59, 130, 246, 0.08)', padding: '16px', borderRadius: '12px'}}>
+                                    <h4 style={{fontSize: '15px', fontWeight: '600', marginBottom: '16px', color: '#60a5fa'}}>Services additionnels</h4>
+                                    <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap', gap: '12px'}}>
+                                        <label style={{fontSize: '15px', fontWeight: '600', flex: '1', minWidth: '150px'}}>🔧 Installation (500€/jour)</label>
                                         <div className="quantity-controls">
                                             <button className="quantity-btn" onClick={() => setInstallationDays(Math.max(0, installationDays - 1))}>-</button>
-                                            <span style={{fontWeight: 'bold', width: '40px', textAlign: 'center', fontSize: '16px'}}>{installationDays}</span>
+                                            <span style={{fontWeight: 'bold', width: '50px', textAlign: 'center', fontSize: '18px'}}>{installationDays}</span>
                                             <button className="quantity-btn" onClick={() => setInstallationDays(installationDays + 1)}>+</button>
                                         </div>
                                     </div>
-                                    <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
-                                        <label style={{fontSize: '14px', fontWeight: '600'}}>Accessoires (200€)</label>
+                                    <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px'}}>
+                                        <label style={{fontSize: '15px', fontWeight: '600', flex: '1', minWidth: '150px'}}>📦 Accessoires (200€)</label>
                                         <div className="quantity-controls">
                                             <button className="quantity-btn" onClick={() => setAccessoiresQty(Math.max(0, accessoiresQty - 1))}>-</button>
-                                            <span style={{fontWeight: 'bold', width: '40px', textAlign: 'center', fontSize: '16px'}}>{accessoiresQty}</span>
+                                            <span style={{fontWeight: 'bold', width: '50px', textAlign: 'center', fontSize: '18px'}}>{accessoiresQty}</span>
                                             <button className="quantity-btn" onClick={() => setAccessoiresQty(accessoiresQty + 1)}>+</button>
                                         </div>
                                     </div>
