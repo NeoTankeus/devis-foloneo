@@ -380,7 +380,8 @@
         function init() {
             if (!localStorage.getItem('foloneo_users')) {
                 localStorage.setItem('foloneo_users', JSON.stringify([
-                    { id: '1', username: 'admin', password: 'admin123', role: 'admin', active: true }
+                    { id: '1', username: 'admin', password: 'admin123', role: 'admin', active: true },
+                    { id: '2', username: 'commercial', password: 'commercial123', role: 'commercial', active: true }
                 ]));
             }
             if (!localStorage.getItem('foloneo_quotes')) {
@@ -903,11 +904,12 @@
         }
 
         // Quote Creator
-        function QuoteCreator({ onSave, onBack }) {
+        function QuoteCreator({ onSave, onBack, user }) {
             const [clientName, setClientName] = useState('');
             const [cart, setCart] = useState([]);
             const [discount, setDiscount] = useState(0);
-            const [coefficient, setCoefficient] = useState(0);
+            const isCommercial = user && user.role === 'commercial';
+            const [coefficient, setCoefficient] = useState(isCommercial ? 3 : 0);
             const [installationDays, setInstallationDays] = useState(0);
             const [accessoiresQty, setAccessoiresQty] = useState(0);
             const [search, setSearch] = useState('');
@@ -1022,6 +1024,7 @@
                             ) : (
                                 filtered.map(p => {
                                     const cartItem = cart.find(item => item.id === p.id);
+                                    const displayPrice = isCommercial ? p.price * 3 : p.price;
                                     return (
                                         <div key={p.id} className="product-item" style={{flexDirection: 'column', alignItems: 'stretch', gap: '12px'}}>
                                             <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start'}}>
@@ -1030,7 +1033,10 @@
                                                     <div style={{fontSize: '13px', color: 'rgba(255,255,255,0.5)', marginBottom: '4px'}}>
                                                         {p.category} {p.supplier && `• ${p.supplier}`}
                                                     </div>
-                                                    <div style={{fontSize: '18px', fontWeight: 'bold', color: '#3b82f6', marginTop: '4px'}}>{p.price.toFixed(2)} €</div>
+                                                    <div style={{fontSize: '18px', fontWeight: 'bold', color: '#10b981', marginTop: '4px'}}>
+                                                        {isCommercial && <span style={{fontSize: '12px', color: 'rgba(255,255,255,0.6)', marginRight: '4px'}}>Prix vente:</span>}
+                                                        {displayPrice.toFixed(2)} €
+                                                    </div>
                                                 </div>
                                             </div>
                                             {cartItem ? (
@@ -1126,18 +1132,27 @@
                                         max="100"
                                     />
                                 </div>
-                                <div style={{display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px', flexWrap: 'wrap'}}>
-                                    <label style={{fontSize: '14px', minWidth: '80px'}}>Coefficient</label>
-                                    <input
-                                        type="number"
-                                        className="input"
-                                        style={{width: '100px', marginBottom: '0'}}
-                                        value={coefficient}
-                                        onChange={(e) => setCoefficient(Math.max(0, Number(e.target.value) || 0))}
-                                        min="0"
-                                        step="0.1"
-                                    />
-                                </div>
+                                {!isCommercial && (
+                                    <div style={{display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px', flexWrap: 'wrap'}}>
+                                        <label style={{fontSize: '14px', minWidth: '80px'}}>Coefficient</label>
+                                        <input
+                                            type="number"
+                                            className="input"
+                                            style={{width: '100px', marginBottom: '0'}}
+                                            value={coefficient}
+                                            onChange={(e) => setCoefficient(Math.max(0, Number(e.target.value) || 0))}
+                                            min="0"
+                                            step="0.1"
+                                        />
+                                    </div>
+                                )}
+                                {isCommercial && (
+                                    <div style={{padding: '12px', background: 'rgba(16, 185, 129, 0.15)', borderRadius: '12px', marginBottom: '16px', border: '1px solid rgba(16, 185, 129, 0.3)'}}>
+                                        <div style={{fontSize: '14px', fontWeight: '600', color: '#10b981'}}>
+                                            ✓ Coefficient commercial ×3 appliqué automatiquement
+                                        </div>
+                                    </div>
+                                )}
                                 <div style={{display: 'flex', justifyContent: 'space-between', marginBottom: '8px'}}>
                                     <span>Sous-total produits:</span>
                                     <span style={{fontWeight: '600'}}>{subtotal.toFixed(2)} €</span>
@@ -1255,8 +1270,8 @@
                     </div>
                     <div className="container content">
                         {page === 'dashboard' && <Dashboard quotes={quotes} onDeleteQuote={deleteQuote} />}
-                        {page === 'quotes' && <QuoteCreator onSave={saveQuote} onBack={() => setPage('dashboard')} />}
-                        {page === 'products' && <ProductManager onBack={() => setPage('dashboard')} />}
+                        {page === 'quotes' && <QuoteCreator onSave={saveQuote} onBack={() => setPage('dashboard')} user={user} />}
+                        {page === 'products' && user.role === 'admin' && <ProductManager onBack={() => setPage('dashboard')} />}
                     </div>
                     <div className="mobile-nav">
                         <button className={`mobile-nav-btn ${page === 'dashboard' ? 'active' : ''}`} onClick={() => setPage('dashboard')}>
@@ -1267,10 +1282,12 @@
                             <span style={{fontSize: '24px'}}>📝</span>
                             <span style={{fontSize: '11px'}}>Devis</span>
                         </button>
-                        <button className={`mobile-nav-btn ${page === 'products' ? 'active' : ''}`} onClick={() => setPage('products')}>
-                            <span style={{fontSize: '24px'}}>🛒</span>
-                            <span style={{fontSize: '11px'}}>Produits</span>
-                        </button>
+                        {user.role === 'admin' && (
+                            <button className={`mobile-nav-btn ${page === 'products' ? 'active' : ''}`} onClick={() => setPage('products')}>
+                                <span style={{fontSize: '24px'}}>🛒</span>
+                                <span style={{fontSize: '11px'}}>Produits</span>
+                            </button>
+                        )}
                     </div>
                 </div>
             );
