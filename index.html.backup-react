@@ -1,0 +1,1318 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Foloneo Pro - Générateur de Devis v3.0 FINAL</title>
+    <script crossorigin src="https://cdn.jsdelivr.net/npm/react@18.2.0/umd/react.production.min.js"></script>
+    <script crossorigin src="https://cdn.jsdelivr.net/npm/react-dom@18.2.0/umd/react-dom.production.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@babel/standalone@7.23.5/babel.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        html {
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            background-attachment: fixed;
+            color: white;
+            min-height: 100vh;
+            overflow-x: hidden;
+            /* Support iPhone safe areas */
+            padding-bottom: env(safe-area-inset-bottom);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 16px;
+            padding-bottom: calc(80px + env(safe-area-inset-bottom));
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 16px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .btn {
+            padding: 14px 24px;
+            border: none;
+            border-radius: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            font-size: 15px;
+            touch-action: manipulation;
+            user-select: none;
+            -webkit-user-select: none;
+            min-height: 48px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .btn:active {
+            transform: scale(0.96);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #3b82f6, #2563eb);
+            color: white;
+            box-shadow: 0 4px 14px rgba(59, 130, 246, 0.4);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;
+            box-shadow: 0 4px 14px rgba(16, 185, 129, 0.4);
+        }
+
+        .input, .search-bar {
+            width: 100%;
+            padding: 16px 18px;
+            background: rgba(255, 255, 255, 0.08);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            border-radius: 14px;
+            color: white;
+            font-size: 16px;
+            margin-bottom: 14px;
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            font-family: inherit;
+            min-height: 52px;
+        }
+
+        .input:focus, .search-bar:focus {
+            outline: none;
+            border-color: #3b82f6;
+            background: rgba(255, 255, 255, 0.12);
+            box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
+        }
+
+        .input::placeholder, .search-bar::placeholder {
+            color: rgba(255, 255, 255, 0.4);
+        }
+
+        .product-item {
+            background: rgba(255, 255, 255, 0.06);
+            padding: 18px;
+            border-radius: 16px;
+            margin-bottom: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .product-item:active {
+            background: rgba(59, 130, 246, 0.12);
+            transform: scale(0.98);
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.2), rgba(37, 99, 235, 0.1));
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            border-radius: 18px;
+            padding: 22px;
+            text-align: center;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 14px;
+        }
+
+        h1 { font-size: clamp(24px, 6vw, 32px); margin-bottom: 8px; font-weight: 700; }
+        h2 { font-size: clamp(20px, 5vw, 24px); margin-bottom: 16px; font-weight: 700; }
+        h3 { font-size: clamp(16px, 4vw, 18px); margin-bottom: 12px; font-weight: 600; }
+
+        .header {
+            background: rgba(255, 255, 255, 0.06);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            padding: 14px 16px;
+            padding-top: calc(14px + env(safe-area-inset-top));
+            margin-bottom: 20px;
+            border-radius: 0 0 20px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        .logo-icon {
+            width: 44px;
+            height: 44px;
+            background: linear-gradient(135deg, #3b82f6, #2563eb);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+            font-weight: bold;
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+        }
+
+        .btn-add {
+            min-width: 46px;
+            min-height: 46px;
+            width: 46px;
+            height: 46px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #3b82f6, #2563eb);
+            border: none;
+            color: white;
+            font-size: 26px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 14px rgba(59, 130, 246, 0.4);
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            flex-shrink: 0;
+            touch-action: manipulation;
+        }
+
+        .btn-add:active {
+            transform: scale(0.88);
+        }
+
+        .quantity-controls {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            flex-wrap: wrap;
+        }
+
+        .quantity-btn {
+            min-width: 48px;
+            min-height: 48px;
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.12);
+            border: 2px solid rgba(255, 255, 255, 0.25);
+            color: white;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 20px;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            touch-action: manipulation;
+        }
+
+        .quantity-btn:active {
+            transform: scale(0.92);
+            background: rgba(59, 130, 246, 0.3);
+            border-color: rgba(59, 130, 246, 0.5);
+        }
+
+        .mobile-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(15, 23, 42, 0.98);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            padding: 10px 8px;
+            padding-bottom: calc(10px + env(safe-area-inset-bottom));
+            display: flex;
+            justify-content: space-around;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            z-index: 1000;
+            box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .mobile-nav-btn {
+            flex: 1;
+            padding: 10px 8px;
+            background: none;
+            border: none;
+            color: rgba(255, 255, 255, 0.5);
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            border-radius: 12px;
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            touch-action: manipulation;
+            user-select: none;
+            -webkit-user-select: none;
+            min-height: 56px;
+        }
+
+        .mobile-nav-btn.active {
+            background: rgba(59, 130, 246, 0.18);
+            color: #60a5fa;
+        }
+
+        .mobile-nav-btn:active {
+            transform: scale(0.94);
+        }
+
+        @media (min-width: 768px) {
+            .mobile-nav { display: none; }
+            .container { padding: 24px; padding-bottom: 24px; }
+        }
+
+        @media (max-width: 767px) {
+            .btn { font-size: 14px; padding: 12px 20px; }
+            .card { padding: 16px; border-radius: 18px; }
+            .grid { grid-template-columns: 1fr; gap: 12px; }
+            .header { padding: 12px 14px; }
+            .logo-icon { width: 40px; height: 40px; font-size: 20px; }
+        }
+
+        .content {
+            padding-bottom: calc(90px + env(safe-area-inset-bottom));
+        }
+
+        .toast {
+            position: fixed;
+            top: calc(20px + env(safe-area-inset-top));
+            right: 20px;
+            left: 20px;
+            max-width: 400px;
+            margin: 0 auto;
+            background: linear-gradient(135deg, #10b981, #059669);
+            padding: 16px 20px;
+            border-radius: 14px;
+            box-shadow: 0 8px 28px rgba(16, 185, 129, 0.4);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            animation: slideInDown 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 10000;
+            font-weight: 600;
+        }
+
+        @keyframes slideInDown {
+            from {
+                transform: translateY(-100px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        /* Optimisations de performance */
+        .card, .product-item, .btn, .mobile-nav-btn {
+            will-change: transform;
+        }
+
+        /* Smooth scrolling pour iOS */
+        * {
+            -webkit-overflow-scrolling: touch;
+        }
+
+        /* Désactiver le zoom sur les inputs pour iOS */
+        @media (max-width: 767px) {
+            input, select, textarea {
+                font-size: 16px !important;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="root">
+        <div style="display: flex; justify-content: center; align-items: center; min-height: 100vh; color: white; flex-direction: column; gap: 20px;">
+            <div style="font-size: 48px;">⏳</div>
+            <div style="font-size: 24px; font-weight: bold;">Chargement de Foloneo Pro...</div>
+            <div style="font-size: 14px; color: rgba(255,255,255,0.6);">Si cette page ne se charge pas, vérifiez votre connexion internet</div>
+        </div>
+    </div>
+    <script type="text/babel">
+        console.log('Script démarré');
+        console.log('React:', typeof React);
+        console.log('ReactDOM:', typeof ReactDOM);
+        console.log('Babel:', typeof Babel);
+
+        const { useState, useEffect } = React;
+
+        // Produits par défaut (utilisés uniquement pour l'initialisation)
+        const defaultProducts = [
+            { id: 'ajax1', name: 'Hub', price: 108.09, category: 'Centrales', supplier: 'Ajax' },
+            { id: 'ajax2', name: 'Hub 2', price: 151.79, category: 'Centrales', supplier: 'Ajax' },
+            { id: 'ajax3', name: 'Hub 2 - 4G', price: 227.13, category: 'Centrales', supplier: 'Ajax' },
+            { id: 'ajax4', name: 'Hub 2 Plus', price: 259.4, category: 'Centrales', supplier: 'Ajax' },
+            { id: 'ajax5', name: 'DoorProtect', price: 23.9, category: 'Détecteurs', supplier: 'Ajax' },
+            { id: 'ajax6', name: 'MotionProtect', price: 40.55, category: 'Détecteurs', supplier: 'Ajax' },
+            { id: 'ajax7', name: 'FireProtect', price: 47.27, category: 'Détecteurs', supplier: 'Ajax' },
+            { id: 'ajax8', name: 'KeyPad Plus', price: 81.05, category: 'Claviers', supplier: 'Ajax' },
+            { id: 'ajax9', name: 'HomeSiren', price: 40.55, category: 'Sirènes', supplier: 'Ajax' },
+            { id: 'ajax10', name: 'StreetSiren', price: 176.74, category: 'Sirènes', supplier: 'Ajax' },
+            { id: 'dahua1', name: 'NVR 4 canaux', price: 299, category: 'Enregistreurs', supplier: 'Dahua' },
+            { id: 'dahua2', name: 'NVR 8 canaux', price: 449, category: 'Enregistreurs', supplier: 'Dahua' },
+            { id: 'dahua3', name: 'Caméra Dôme 4MP', price: 159, category: 'Caméras', supplier: 'Dahua' },
+            { id: 'dahua4', name: 'Caméra Tube 4MP', price: 179, category: 'Caméras', supplier: 'Dahua' },
+        ];
+
+        // Init
+        function init() {
+            if (!localStorage.getItem('foloneo_users')) {
+                localStorage.setItem('foloneo_users', JSON.stringify([
+                    { id: '1', username: 'admin', password: 'admin123', role: 'admin', active: true },
+                    { id: '2', username: 'commercial', password: 'commercial123', role: 'commercial', active: true }
+                ]));
+            } else {
+                // Migration: ajouter le compte commercial s'il n'existe pas
+                const users = JSON.parse(localStorage.getItem('foloneo_users') || '[]');
+                const hasCommercial = users.find(u => u.username === 'commercial');
+                if (!hasCommercial) {
+                    users.push({ id: '2', username: 'commercial', password: 'commercial123', role: 'commercial', active: true });
+                    localStorage.setItem('foloneo_users', JSON.stringify(users));
+                }
+            }
+            if (!localStorage.getItem('foloneo_quotes')) {
+                localStorage.setItem('foloneo_quotes', JSON.stringify([]));
+            }
+            // Initialiser avec tous les produits par défaut s'ils n'existent pas
+            if (!localStorage.getItem('foloneo_products')) {
+                localStorage.setItem('foloneo_products', JSON.stringify(defaultProducts));
+            }
+        }
+
+        // Fonction pour charger tous les produits
+        function loadAllProducts() {
+            return JSON.parse(localStorage.getItem('foloneo_products') || '[]');
+        }
+
+        // Fonction pour sauvegarder tous les produits
+        function saveAllProducts(products) {
+            localStorage.setItem('foloneo_products', JSON.stringify(products));
+        }
+
+        // Login
+        function LoginScreen({ onLogin }) {
+            const [username, setUsername] = useState('');
+            const [password, setPassword] = useState('');
+            const [error, setError] = useState('');
+
+            const handleLogin = (e) => {
+                e.preventDefault();
+                const users = JSON.parse(localStorage.getItem('foloneo_users') || '[]');
+                const user = users.find(u => u.username.toLowerCase() === username.toLowerCase());
+                if (!user || user.password !== password) {
+                    setError('Identifiant ou mot de passe incorrect');
+                    return;
+                }
+                localStorage.setItem('foloneo_current_user', JSON.stringify(user));
+                onLogin(user);
+            };
+
+            return (
+                <div className="container" style={{paddingTop: '100px'}}>
+                    <div className="card" style={{maxWidth: '400px', margin: '0 auto'}}>
+                        <div style={{textAlign: 'center', marginBottom: '32px'}}>
+                            <div className="logo-icon" style={{margin: '0 auto 16px'}}>F</div>
+                            <h1>Foloneo Pro</h1>
+                            <p style={{color: 'rgba(255,255,255,0.6)'}}>Générateur de Devis</p>
+                        </div>
+                        <form onSubmit={handleLogin}>
+                            <input
+                                type="text"
+                                className="input"
+                                placeholder="Identifiant"
+                                value={username}
+                                onChange={(e) => setUsername(e.target.value)}
+                                required
+                            />
+                            <input
+                                type="password"
+                                className="input"
+                                placeholder="Mot de passe"
+                                value={password}
+                                onChange={(e) => setPassword(e.target.value)}
+                                required
+                            />
+                            {error && <div style={{color: '#ef4444', marginBottom: '12px', fontSize: '14px'}}>{error}</div>}
+                            <button type="submit" className="btn btn-primary" style={{width: '100%'}}>
+                                Se connecter
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            );
+        }
+
+        // Dashboard
+        function Dashboard({ quotes, onDeleteQuote }) {
+            const [toast, setToast] = useState('');
+            const total = quotes.length;
+            const revenue = quotes.reduce((s, q) => s + q.total, 0);
+            const avg = total > 0 ? revenue / total : 0;
+
+            const handleDelete = (quoteId, clientName) => {
+                if (confirm(`Êtes-vous sûr de vouloir supprimer le devis de ${clientName} ?`)) {
+                    onDeleteQuote(quoteId);
+                    setToast('✓ Devis supprimé');
+                    setTimeout(() => setToast(''), 2500);
+                }
+            };
+
+            const exportToPDF = (quote) => {
+                const { jsPDF } = window.jspdf;
+                const doc = new jsPDF();
+
+                // En-tête avec fond bleu
+                doc.setFillColor(37, 99, 235);
+                doc.rect(0, 0, 210, 35, 'F');
+
+                // Logo et titre
+                doc.setTextColor(255, 255, 255);
+                doc.setFontSize(24);
+                doc.setFont(undefined, 'bold');
+                doc.text('FOLONEO PRO', 105, 15, { align: 'center' });
+                doc.setFontSize(14);
+                doc.setFont(undefined, 'normal');
+                doc.text('DEVIS', 105, 25, { align: 'center' });
+
+                // Informations devis et client
+                doc.setTextColor(0, 0, 0);
+                doc.setFontSize(11);
+                doc.setFont(undefined, 'bold');
+                doc.text(`Client:`, 20, 50);
+                doc.setFont(undefined, 'normal');
+                doc.text(quote.clientName, 45, 50);
+
+                doc.setFont(undefined, 'bold');
+                doc.text(`Date:`, 20, 58);
+                doc.setFont(undefined, 'normal');
+                doc.text(new Date(quote.date).toLocaleDateString('fr-FR'), 45, 58);
+
+                doc.setFont(undefined, 'bold');
+                doc.text(`Devis N°:`, 20, 66);
+                doc.setFont(undefined, 'normal');
+                doc.text(quote.id, 45, 66);
+
+                // Ligne de séparation
+                doc.setDrawColor(200, 200, 200);
+                doc.setLineWidth(0.5);
+                doc.line(20, 75, 190, 75);
+
+                // Tableau des produits - En-tête avec fond gris
+                let y = 85;
+                doc.setFillColor(240, 240, 240);
+                doc.rect(20, y - 6, 170, 8, 'F');
+                doc.setFontSize(10);
+                doc.setFont(undefined, 'bold');
+                doc.setTextColor(0, 0, 0);
+                doc.text('Désignation', 22, y);
+                doc.text('P.U. HT', 115, y, { align: 'right' });
+                doc.text('Qté', 145, y, { align: 'center' });
+                doc.text('Total HT', 185, y, { align: 'right' });
+
+                // Produits
+                y += 10;
+                doc.setFont(undefined, 'normal');
+                doc.setFontSize(9);
+
+                quote.items.forEach((item) => {
+                    if (y > 260) {
+                        doc.addPage();
+                        y = 30;
+                    }
+                    doc.text(item.name.substring(0, 45), 22, y);
+                    doc.text(`${item.price.toFixed(2)} €`, 115, y, { align: 'right' });
+                    doc.text(item.quantity.toString(), 145, y, { align: 'center' });
+                    doc.text(`${(item.price * item.quantity).toFixed(2)} €`, 185, y, { align: 'right' });
+                    y += 7;
+                });
+
+                // Installation
+                if (quote.installationDays > 0) {
+                    if (y > 260) { doc.addPage(); y = 30; }
+                    doc.text('Installation', 22, y);
+                    doc.text('500.00 €', 115, y, { align: 'right' });
+                    doc.text(quote.installationDays.toString(), 145, y, { align: 'center' });
+                    doc.text(`${quote.installationAmount.toFixed(2)} €`, 185, y, { align: 'right' });
+                    y += 7;
+                }
+
+                // Accessoires
+                if (quote.accessoiresQty > 0) {
+                    if (y > 260) { doc.addPage(); y = 30; }
+                    doc.text('Accessoires', 22, y);
+                    doc.text('200.00 €', 115, y, { align: 'right' });
+                    doc.text(quote.accessoiresQty.toString(), 145, y, { align: 'center' });
+                    doc.text(`${quote.accessoiresAmount.toFixed(2)} €`, 185, y, { align: 'right' });
+                    y += 7;
+                }
+
+                // Ligne de fin de tableau
+                y += 3;
+                doc.setDrawColor(200, 200, 200);
+                doc.line(20, y, 190, y);
+
+                // Totaux
+                y += 12;
+                doc.setFontSize(10);
+                doc.setFont(undefined, 'normal');
+                doc.text('Sous-total HT:', 130, y);
+                doc.text(`${quote.subtotal.toFixed(2)} €`, 185, y, { align: 'right' });
+
+                if (quote.discount > 0) {
+                    y += 7;
+                    doc.setTextColor(200, 50, 50);
+                    doc.text(`Remise (${quote.discount}%):`, 130, y);
+                    doc.text(`-${quote.discountAmount.toFixed(2)} €`, 185, y, { align: 'right' });
+                    doc.setTextColor(0, 0, 0);
+                }
+
+                if (quote.coefficient > 0 && quote.coefficient !== 1) {
+                    y += 7;
+                    doc.setTextColor(59, 130, 246);
+                    doc.text(`Coefficient (×${quote.coefficient}):`, 130, y);
+                    doc.text(`appliqué`, 185, y, { align: 'right' });
+                    doc.setTextColor(0, 0, 0);
+                }
+
+                // Total HT avec fond
+                y += 12;
+                doc.setFillColor(16, 185, 129);
+                doc.rect(125, y - 8, 65, 12, 'F');
+                doc.setFontSize(13);
+                doc.setFont(undefined, 'bold');
+                doc.setTextColor(255, 255, 255);
+                doc.text('TOTAL HT:', 130, y);
+                doc.text(`${quote.total.toFixed(2)} €`, 185, y, { align: 'right' });
+
+                // Location mensuelle avec fond bleu
+                if (quote.locationMensuelle && quote.locationMensuelle > 0) {
+                    y += 20;
+                    doc.setFillColor(59, 130, 246);
+                    doc.rect(20, y - 8, 170, 12, 'F');
+                    doc.setFontSize(12);
+                    doc.setFont(undefined, 'bold');
+                    doc.setTextColor(255, 255, 255);
+                    doc.text('LOCATION MENSUELLE:', 25, y);
+                    doc.text(`${quote.locationMensuelle.toFixed(2)} € /mois`, 185, y, { align: 'right' });
+                }
+
+                // Pied de page
+                doc.setFontSize(8);
+                doc.setTextColor(120, 120, 120);
+                doc.setFont(undefined, 'normal');
+                doc.text('Foloneo Pro - Devis généré automatiquement', 105, 285, { align: 'center' });
+
+                // Télécharger
+                doc.save(`Devis_${quote.clientName}_${quote.id}.pdf`);
+                setToast('✓ PDF exporté avec succès');
+                setTimeout(() => setToast(''), 2500);
+            };
+
+            return (
+                <div>
+                    {toast && (
+                        <div className="toast">
+                            <span style={{fontWeight: '600'}}>{toast}</span>
+                        </div>
+                    )}
+                    <h2>📊 Tableau de bord</h2>
+                    <div className="grid">
+                        <div className="stat-card">
+                            <div style={{fontSize: '32px', marginBottom: '8px'}}>📝</div>
+                            <div style={{color: 'rgba(255,255,255,0.6)', fontSize: '14px'}}>Total Devis</div>
+                            <div style={{fontSize: '36px', fontWeight: 'bold'}}>{total}</div>
+                        </div>
+                        <div className="stat-card">
+                            <div style={{fontSize: '32px', marginBottom: '8px'}}>💰</div>
+                            <div style={{color: 'rgba(255,255,255,0.6)', fontSize: '14px'}}>CA Total</div>
+                            <div style={{fontSize: '36px', fontWeight: 'bold'}}>{revenue.toFixed(0)} €</div>
+                        </div>
+                        <div className="stat-card">
+                            <div style={{fontSize: '32px', marginBottom: '8px'}}>📈</div>
+                            <div style={{color: 'rgba(255,255,255,0.6)', fontSize: '14px'}}>Devis Moyen</div>
+                            <div style={{fontSize: '36px', fontWeight: 'bold'}}>{avg.toFixed(0)} €</div>
+                        </div>
+                    </div>
+                    {quotes.length > 0 && (
+                        <div className="card" style={{marginTop: '24px'}}>
+                            <h3>📋 Derniers devis</h3>
+                            {quotes.slice(-5).reverse().map(q => (
+                                <div key={q.id} style={{padding: '12px', background: 'rgba(255,255,255,0.05)', borderRadius: '12px', marginBottom: '10px'}}>
+                                    <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px'}}>
+                                        <div>
+                                            <div style={{fontWeight: '600', fontSize: '16px'}}>{q.clientName}</div>
+                                            <div style={{fontSize: '12px', color: 'rgba(255,255,255,0.6)', marginTop: '4px'}}>
+                                                {new Date(q.date).toLocaleDateString('fr-FR')}
+                                            </div>
+                                        </div>
+                                        <div style={{fontSize: '22px', fontWeight: 'bold', color: '#3b82f6'}}>{q.total.toFixed(2)} €</div>
+                                    </div>
+                                    <div style={{display: 'flex', gap: '8px', flexWrap: 'wrap'}}>
+                                        <button
+                                            onClick={() => exportToPDF(q)}
+                                            className="btn btn-primary"
+                                            style={{flex: 1, minWidth: '140px', padding: '10px'}}
+                                        >
+                                            📄 Exporter PDF
+                                        </button>
+                                        <button
+                                            onClick={() => handleDelete(q.id, q.clientName)}
+                                            className="btn"
+                                            style={{flex: 1, minWidth: '140px', background: 'rgba(239, 68, 68, 0.2)', color: 'white', padding: '10px'}}
+                                        >
+                                            🗑️ Supprimer
+                                        </button>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                </div>
+            );
+        }
+
+        // Product Manager - Tous les produits sont modifiables
+        function ProductManager({ onBack, onProductsChange }) {
+            const [products, setProducts] = useState([]);
+            const [search, setSearch] = useState('');
+            const [showForm, setShowForm] = useState(false);
+            const [editingProduct, setEditingProduct] = useState(null);
+            const [formData, setFormData] = useState({ name: '', price: '', category: '', supplier: '' });
+            const [toast, setToast] = useState('');
+
+            useEffect(() => {
+                loadProducts();
+            }, []);
+
+            const loadProducts = () => {
+                const allProducts = loadAllProducts();
+                setProducts(allProducts);
+            };
+
+            const showToast = (message) => {
+                setToast(message);
+                setTimeout(() => setToast(''), 2500);
+            };
+
+            const handleSubmit = (e) => {
+                e.preventDefault();
+                if (!formData.name || !formData.price || !formData.category) {
+                    alert('Veuillez remplir tous les champs obligatoires');
+                    return;
+                }
+
+                const product = {
+                    id: editingProduct ? editingProduct.id : `prod_${Date.now()}`,
+                    name: formData.name.trim(),
+                    price: parseFloat(formData.price),
+                    category: formData.category.trim(),
+                    supplier: formData.supplier.trim() || 'Autre'
+                };
+
+                let updated;
+                if (editingProduct) {
+                    updated = products.map(p => p.id === editingProduct.id ? product : p);
+                    showToast('✓ Produit modifié avec succès');
+                } else {
+                    updated = [...products, product];
+                    showToast('✓ Produit ajouté avec succès');
+                }
+
+                saveAllProducts(updated);
+                setProducts(updated);
+                setShowForm(false);
+                setEditingProduct(null);
+                setFormData({ name: '', price: '', category: '', supplier: '' });
+                if (onProductsChange) onProductsChange();
+            };
+
+            const handleEdit = (product) => {
+                setEditingProduct(product);
+                setFormData({
+                    name: product.name,
+                    price: product.price.toString(),
+                    category: product.category,
+                    supplier: product.supplier || ''
+                });
+                setShowForm(true);
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            };
+
+            const handleDelete = (productId) => {
+                if (confirm('Êtes-vous sûr de vouloir supprimer ce produit ?')) {
+                    const updated = products.filter(p => p.id !== productId);
+                    saveAllProducts(updated);
+                    setProducts(updated);
+                    showToast('✓ Produit supprimé');
+                    if (onProductsChange) onProductsChange();
+                }
+            };
+
+            const handleCancel = () => {
+                setShowForm(false);
+                setEditingProduct(null);
+                setFormData({ name: '', price: '', category: '', supplier: '' });
+            };
+
+            const filtered = products.filter(p =>
+                p.name.toLowerCase().includes(search.toLowerCase()) ||
+                p.category.toLowerCase().includes(search.toLowerCase()) ||
+                (p.supplier && p.supplier.toLowerCase().includes(search.toLowerCase()))
+            );
+
+            const categories = [...new Set(products.map(p => p.category))];
+
+            return (
+                <div>
+                    {toast && (
+                        <div className="toast">
+                            <span style={{fontWeight: '600'}}>{toast}</span>
+                        </div>
+                    )}
+
+                    <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', flexWrap: 'wrap', gap: '12px'}}>
+                        <h2 style={{margin: 0}}>🛒 Gestion des Produits</h2>
+                        <button onClick={onBack} className="btn btn-primary">← Retour</button>
+                    </div>
+
+                    {showForm ? (
+                        <div className="card">
+                            <h3>{editingProduct ? '✏️ Modifier le produit' : '➕ Nouveau produit'}</h3>
+                            <form onSubmit={handleSubmit}>
+                                <input
+                                    type="text"
+                                    className="input"
+                                    placeholder="Nom du produit *"
+                                    value={formData.name}
+                                    onChange={(e) => setFormData({...formData, name: e.target.value})}
+                                    required
+                                    autoFocus
+                                />
+                                <input
+                                    type="number"
+                                    className="input"
+                                    placeholder="Prix (€) *"
+                                    value={formData.price}
+                                    onChange={(e) => setFormData({...formData, price: e.target.value})}
+                                    step="0.01"
+                                    min="0"
+                                    required
+                                />
+                                <input
+                                    type="text"
+                                    className="input"
+                                    placeholder="Catégorie *"
+                                    value={formData.category}
+                                    onChange={(e) => setFormData({...formData, category: e.target.value})}
+                                    list="categories"
+                                    required
+                                />
+                                <datalist id="categories">
+                                    {categories.map(cat => <option key={cat} value={cat} />)}
+                                </datalist>
+                                <input
+                                    type="text"
+                                    className="input"
+                                    placeholder="Fournisseur (optionnel)"
+                                    value={formData.supplier}
+                                    onChange={(e) => setFormData({...formData, supplier: e.target.value})}
+                                />
+                                <div style={{display: 'flex', gap: '12px', flexWrap: 'wrap'}}>
+                                    <button type="submit" className="btn btn-success" style={{flex: 1, minWidth: '140px'}}>
+                                        💾 {editingProduct ? 'Enregistrer' : 'Ajouter'}
+                                    </button>
+                                    <button type="button" onClick={handleCancel} className="btn" style={{flex: 1, minWidth: '140px', background: 'rgba(239, 68, 68, 0.2)', color: 'white'}}>
+                                        ✕ Annuler
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    ) : (
+                        <>
+                            <div className="card">
+                                <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap', gap: '12px'}}>
+                                    <h3 style={{margin: 0}}>📦 Catalogue ({products.length})</h3>
+                                    <button onClick={() => setShowForm(true)} className="btn btn-primary">
+                                        ➕ Nouveau
+                                    </button>
+                                </div>
+                                <input
+                                    type="text"
+                                    className="search-bar"
+                                    placeholder="🔍 Rechercher par nom, catégorie ou fournisseur..."
+                                    value={search}
+                                    onChange={(e) => setSearch(e.target.value)}
+                                />
+                                <div style={{maxHeight: '60vh', overflowY: 'auto', WebkitOverflowScrolling: 'touch'}}>
+                                    {filtered.length === 0 ? (
+                                        <div style={{textAlign: 'center', padding: '40px', color: 'rgba(255,255,255,0.4)'}}>
+                                            {search ? 'Aucun produit trouvé' : 'Aucun produit. Cliquez sur "Nouveau" pour en ajouter.'}
+                                        </div>
+                                    ) : (
+                                        filtered.map(p => (
+                                            <div key={p.id} className="product-item" style={{flexDirection: 'column', alignItems: 'stretch', gap: '12px'}}>
+                                                <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start'}}>
+                                                    <div style={{flex: 1}}>
+                                                        <div style={{fontWeight: '600', marginBottom: '4px', fontSize: '16px'}}>{p.name}</div>
+                                                        <div style={{fontSize: '13px', color: 'rgba(255,255,255,0.5)', marginBottom: '4px'}}>
+                                                            {p.category} {p.supplier && `• ${p.supplier}`}
+                                                        </div>
+                                                        <div style={{fontSize: '20px', fontWeight: 'bold', color: '#3b82f6', marginTop: '6px'}}>
+                                                            {p.price.toFixed(2)} €
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div style={{display: 'flex', gap: '8px', flexWrap: 'wrap'}}>
+                                                    <button
+                                                        onClick={() => handleEdit(p)}
+                                                        className="btn btn-primary"
+                                                        style={{flex: 1, minWidth: '120px', padding: '10px 16px'}}
+                                                    >
+                                                        ✏️ Modifier
+                                                    </button>
+                                                    <button
+                                                        onClick={() => handleDelete(p.id)}
+                                                        className="btn"
+                                                        style={{flex: 1, minWidth: '120px', padding: '10px 16px', background: 'rgba(239, 68, 68, 0.2)', color: 'white'}}
+                                                    >
+                                                        🗑️ Supprimer
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        ))
+                                    )}
+                                </div>
+                            </div>
+                        </>
+                    )}
+                </div>
+            );
+        }
+
+        // Quote Creator
+        function QuoteCreator({ onSave, onBack, user }) {
+            const [clientName, setClientName] = useState('');
+            const [cart, setCart] = useState([]);
+            const [discount, setDiscount] = useState(0);
+            const isCommercial = user && user.role === 'commercial';
+            const [coefficient, setCoefficient] = useState(isCommercial ? 3 : 0);
+            const [installationDays, setInstallationDays] = useState(0);
+            const [accessoiresQty, setAccessoiresQty] = useState(0);
+            const [search, setSearch] = useState('');
+            const [toast, setToast] = useState('');
+            const [allProducts, setAllProducts] = useState([]);
+
+            useEffect(() => {
+                const products = loadAllProducts();
+                setAllProducts(products);
+            }, []);
+
+            const filtered = allProducts.filter(p =>
+                p.name.toLowerCase().includes(search.toLowerCase()) ||
+                p.category.toLowerCase().includes(search.toLowerCase()) ||
+                (p.supplier && p.supplier.toLowerCase().includes(search.toLowerCase()))
+            );
+
+            const addToCart = (product) => {
+                const existing = cart.find(item => item.id === product.id);
+                if (existing) {
+                    setCart(cart.map(item => item.id === product.id ? {...item, quantity: item.quantity + 1} : item));
+                } else {
+                    setCart([...cart, {...product, quantity: 0}]);
+                }
+                setToast(`${product.name} ajouté`);
+                setTimeout(() => setToast(''), 2000);
+            };
+
+            const updateQty = (id, qty) => {
+                if (qty < 0) {
+                    return; // Ne rien faire si négatif
+                } else {
+                    setCart(cart.map(item => item.id === id ? {...item, quantity: qty} : item));
+                }
+            };
+
+            const subtotal = cart.reduce((s, item) => s + (item.price * item.quantity), 0);
+            const installationAmount = installationDays * 500;
+            const accessoiresAmount = accessoiresQty * 200;
+            const subtotalWithServices = subtotal + installationAmount + accessoiresAmount;
+            const discountAmount = subtotalWithServices * (discount / 100);
+            const totalAfterDiscount = subtotalWithServices - discountAmount;
+            const total = coefficient > 0 ? totalAfterDiscount * coefficient : totalAfterDiscount;
+
+            // Calcul de la location mensuelle
+            const locationBase = total * 0.07; // 7% du prix HT
+            const locationMultipliee = locationBase * 5;
+            const locationTotal = locationMultipliee + total;
+            const locationMensuelle = locationTotal / 48;
+
+            const handleSave = () => {
+                if (!clientName) { alert('Entrez le nom du client'); return; }
+                if (cart.length === 0 && installationDays === 0 && accessoiresQty === 0) {
+                    alert('Ajoutez des produits ou des services');
+                    return;
+                }
+                const quote = {
+                    id: Date.now().toString(),
+                    date: new Date().toISOString(),
+                    clientName,
+                    items: cart,
+                    installationDays,
+                    installationAmount,
+                    accessoiresQty,
+                    accessoiresAmount,
+                    subtotal: subtotalWithServices,
+                    discount,
+                    discountAmount,
+                    coefficient,
+                    total,
+                    locationMensuelle
+                };
+                onSave(quote);
+            };
+
+            return (
+                <div>
+                    {toast && (
+                        <div className="toast">
+                            <span style={{fontSize: '20px'}}>✓</span>
+                            <span style={{fontWeight: '600'}}>{toast}</span>
+                        </div>
+                    )}
+                    <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px'}}>
+                        <h2>📝 Nouveau Devis</h2>
+                        <button onClick={onBack} className="btn btn-primary">← Retour</button>
+                    </div>
+                    <div className="card">
+                        <h3>👤 Client</h3>
+                        <input
+                            type="text"
+                            className="input"
+                            placeholder="Nom du client *"
+                            value={clientName}
+                            onChange={(e) => setClientName(e.target.value)}
+                        />
+                    </div>
+                    <div className="card">
+                        <h3>🛒 Produits ({allProducts.length})</h3>
+                        <input
+                            type="text"
+                            className="search-bar"
+                            placeholder="🔍 Rechercher un produit..."
+                            value={search}
+                            onChange={(e) => setSearch(e.target.value)}
+                        />
+                        <div style={{maxHeight: '50vh', overflowY: 'auto', WebkitOverflowScrolling: 'touch'}}>
+                            {filtered.length === 0 ? (
+                                <div style={{textAlign: 'center', padding: '40px', color: 'rgba(255,255,255,0.4)'}}>
+                                    {search ? 'Aucun produit trouvé' : 'Aucun produit disponible'}
+                                </div>
+                            ) : (
+                                filtered.map(p => {
+                                    const cartItem = cart.find(item => item.id === p.id);
+                                    const displayPrice = isCommercial ? p.price * 3 : p.price;
+                                    return (
+                                        <div key={p.id} className="product-item" style={{flexDirection: 'column', alignItems: 'stretch', gap: '12px'}}>
+                                            <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start'}}>
+                                                <div style={{flex: 1}}>
+                                                    <div style={{fontWeight: '600', marginBottom: '4px'}}>{p.name}</div>
+                                                    <div style={{fontSize: '13px', color: 'rgba(255,255,255,0.5)', marginBottom: '4px'}}>
+                                                        {p.category} {p.supplier && `• ${p.supplier}`}
+                                                    </div>
+                                                    <div style={{fontSize: '18px', fontWeight: 'bold', color: '#10b981', marginTop: '4px'}}>
+                                                        {isCommercial && <span style={{fontSize: '12px', color: 'rgba(255,255,255,0.6)', marginRight: '4px'}}>Prix vente:</span>}
+                                                        {displayPrice.toFixed(2)} €
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            {cartItem ? (
+                                                <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px', background: 'rgba(16, 185, 129, 0.15)', borderRadius: '12px', border: '2px solid rgba(16, 185, 129, 0.3)'}}>
+                                                    <div className="quantity-controls" style={{alignItems: 'center'}}>
+                                                        <button className="quantity-btn" onClick={() => updateQty(p.id, cartItem.quantity - 1)}>-</button>
+                                                        <span style={{fontWeight: 'bold', width: '40px', textAlign: 'center', fontSize: '16px'}}>{cartItem.quantity}</span>
+                                                        <button className="quantity-btn" onClick={() => updateQty(p.id, cartItem.quantity + 1)}>+</button>
+                                                        <button
+                                                            onClick={() => setCart(cart.filter(item => item.id !== p.id))}
+                                                            style={{
+                                                                background: 'rgba(239, 68, 68, 0.2)',
+                                                                border: '1px solid rgba(239, 68, 68, 0.4)',
+                                                                color: '#ef4444',
+                                                                width: '32px',
+                                                                height: '32px',
+                                                                borderRadius: '8px',
+                                                                cursor: 'pointer',
+                                                                display: 'flex',
+                                                                alignItems: 'center',
+                                                                justifyContent: 'center',
+                                                                fontSize: '18px',
+                                                                fontWeight: 'bold',
+                                                                marginLeft: '8px'
+                                                            }}
+                                                        >
+                                                            ×
+                                                        </button>
+                                                    </div>
+                                                    <div style={{fontWeight: 'bold', color: '#10b981', fontSize: '18px'}}>
+                                                        {(p.price * cartItem.quantity).toFixed(2)} €
+                                                    </div>
+                                                </div>
+                                            ) : (
+                                                <button className="btn btn-primary" style={{width: '100%'}} onClick={() => addToCart(p)}>
+                                                    + Ajouter au devis
+                                                </button>
+                                            )}
+                                        </div>
+                                    );
+                                })
+                            )}
+                        </div>
+                    </div>
+                    {cart.length > 0 && (
+                        <div className="card">
+                            <h3>🛍️ Panier ({cart.length})</h3>
+                            {cart.map(item => (
+                                <div key={item.id} style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px', background: 'rgba(255,255,255,0.05)', borderRadius: '8px', marginBottom: '8px'}}>
+                                    <div style={{flex: 1}}>
+                                        <div style={{fontWeight: '600'}}>{item.name}</div>
+                                        <div style={{fontSize: '14px', color: 'rgba(255,255,255,0.6)'}}>{item.price} € × {item.quantity}</div>
+                                    </div>
+                                    <div className="quantity-controls">
+                                        <button className="quantity-btn" onClick={() => updateQty(item.id, item.quantity - 1)}>-</button>
+                                        <span style={{fontWeight: 'bold', width: '32px', textAlign: 'center'}}>{item.quantity}</span>
+                                        <button className="quantity-btn" onClick={() => updateQty(item.id, item.quantity + 1)}>+</button>
+                                        <div style={{width: '80px', textAlign: 'right', fontWeight: 'bold', color: '#3b82f6'}}>
+                                            {(item.price * item.quantity).toFixed(2)} €
+                                        </div>
+                                    </div>
+                                </div>
+                            ))}
+                            <div style={{marginTop: '24px', paddingTop: '24px', borderTop: '2px solid rgba(255,255,255,0.15)'}}>
+                                <div style={{marginBottom: '20px', paddingBottom: '20px', borderBottom: '1px solid rgba(255,255,255,0.1)', background: 'rgba(59, 130, 246, 0.08)', padding: '16px', borderRadius: '12px'}}>
+                                    <h4 style={{fontSize: '15px', fontWeight: '600', marginBottom: '16px', color: '#60a5fa'}}>Services additionnels</h4>
+                                    <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap', gap: '12px'}}>
+                                        <label style={{fontSize: '15px', fontWeight: '600', flex: '1', minWidth: '150px'}}>🔧 Installation (500€/jour)</label>
+                                        <div className="quantity-controls">
+                                            <button className="quantity-btn" onClick={() => setInstallationDays(Math.max(0, installationDays - 1))}>-</button>
+                                            <span style={{fontWeight: 'bold', width: '50px', textAlign: 'center', fontSize: '18px'}}>{installationDays}</span>
+                                            <button className="quantity-btn" onClick={() => setInstallationDays(installationDays + 1)}>+</button>
+                                        </div>
+                                    </div>
+                                    <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px'}}>
+                                        <label style={{fontSize: '15px', fontWeight: '600', flex: '1', minWidth: '150px'}}>📦 Accessoires (200€)</label>
+                                        <div className="quantity-controls">
+                                            <button className="quantity-btn" onClick={() => setAccessoiresQty(Math.max(0, accessoiresQty - 1))}>-</button>
+                                            <span style={{fontWeight: 'bold', width: '50px', textAlign: 'center', fontSize: '18px'}}>{accessoiresQty}</span>
+                                            <button className="quantity-btn" onClick={() => setAccessoiresQty(accessoiresQty + 1)}>+</button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div style={{display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '12px', flexWrap: 'wrap'}}>
+                                    <label style={{fontSize: '14px', minWidth: '80px'}}>Remise %</label>
+                                    <input
+                                        type="number"
+                                        className="input"
+                                        style={{width: '100px', marginBottom: '0'}}
+                                        value={discount}
+                                        onChange={(e) => setDiscount(Math.max(0, Math.min(100, Number(e.target.value))))}
+                                        min="0"
+                                        max="100"
+                                    />
+                                </div>
+                                {!isCommercial && (
+                                    <div style={{display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px', flexWrap: 'wrap'}}>
+                                        <label style={{fontSize: '14px', minWidth: '80px'}}>Coefficient</label>
+                                        <input
+                                            type="number"
+                                            className="input"
+                                            style={{width: '100px', marginBottom: '0'}}
+                                            value={coefficient}
+                                            onChange={(e) => setCoefficient(Math.max(0, Number(e.target.value) || 0))}
+                                            min="0"
+                                            step="0.1"
+                                        />
+                                    </div>
+                                )}
+                                {isCommercial && (
+                                    <div style={{padding: '12px', background: 'rgba(16, 185, 129, 0.15)', borderRadius: '12px', marginBottom: '16px', border: '1px solid rgba(16, 185, 129, 0.3)'}}>
+                                        <div style={{fontSize: '14px', fontWeight: '600', color: '#10b981'}}>
+                                            ✓ Coefficient commercial ×3 appliqué automatiquement
+                                        </div>
+                                    </div>
+                                )}
+                                <div style={{display: 'flex', justifyContent: 'space-between', marginBottom: '8px'}}>
+                                    <span>Sous-total produits:</span>
+                                    <span style={{fontWeight: '600'}}>{subtotal.toFixed(2)} €</span>
+                                </div>
+                                {installationDays > 0 && (
+                                    <div style={{display: 'flex', justifyContent: 'space-between', marginBottom: '8px'}}>
+                                        <span>Installation ({installationDays} jour{installationDays > 1 ? 's' : ''}):</span>
+                                        <span style={{fontWeight: '600'}}>{installationAmount.toFixed(2)} €</span>
+                                    </div>
+                                )}
+                                {accessoiresQty > 0 && (
+                                    <div style={{display: 'flex', justifyContent: 'space-between', marginBottom: '8px'}}>
+                                        <span>Accessoires (×{accessoiresQty}):</span>
+                                        <span style={{fontWeight: '600'}}>{accessoiresAmount.toFixed(2)} €</span>
+                                    </div>
+                                )}
+                                {(installationDays > 0 || accessoiresQty > 0) && (
+                                    <div style={{display: 'flex', justifyContent: 'space-between', marginBottom: '8px', paddingTop: '8px', borderTop: '1px solid rgba(255,255,255,0.05)'}}>
+                                        <span style={{fontWeight: '600'}}>Sous-total avec services:</span>
+                                        <span style={{fontWeight: '600'}}>{subtotalWithServices.toFixed(2)} €</span>
+                                    </div>
+                                )}
+                                {discount > 0 && (
+                                    <div style={{display: 'flex', justifyContent: 'space-between', marginBottom: '8px', color: '#ef4444'}}>
+                                        <span>Remise ({discount}%):</span>
+                                        <span style={{fontWeight: '600'}}>-{discountAmount.toFixed(2)} €</span>
+                                    </div>
+                                )}
+                                {discount > 0 && (
+                                    <div style={{display: 'flex', justifyContent: 'space-between', marginBottom: '8px'}}>
+                                        <span>Total après remise:</span>
+                                        <span style={{fontWeight: '600'}}>{totalAfterDiscount.toFixed(2)} €</span>
+                                    </div>
+                                )}
+                                {coefficient > 0 && coefficient !== 1 && (
+                                    <div style={{display: 'flex', justifyContent: 'space-between', marginBottom: '8px', color: '#60a5fa'}}>
+                                        <span>Coefficient (×{coefficient}):</span>
+                                        <span style={{fontWeight: '600'}}>×{coefficient}</span>
+                                    </div>
+                                )}
+                                <div style={{display: 'flex', justifyContent: 'space-between', fontSize: '24px', fontWeight: 'bold', paddingTop: '12px', borderTop: '1px solid rgba(255,255,255,0.1)'}}>
+                                    <span>TOTAL HT:</span>
+                                    <span style={{color: '#10b981'}}>{total.toFixed(2)} €</span>
+                                </div>
+
+                                {/* Calcul de la location mensuelle */}
+                                <div style={{marginTop: '16px', paddingTop: '16px', borderTop: '2px solid rgba(255,255,255,0.15)', background: 'rgba(59, 130, 246, 0.1)', padding: '16px', borderRadius: '12px'}}>
+                                    <div style={{fontSize: '16px', fontWeight: '600', marginBottom: '12px', color: '#60a5fa'}}>
+                                        📅 Prix à la location (Prestation mensuelle)
+                                    </div>
+                                    <div style={{fontSize: '13px', color: 'rgba(255,255,255,0.6)', marginBottom: '8px'}}>
+                                        Calcul: ({total.toFixed(2)} € × 7% × 5) + {total.toFixed(2)} € ÷ 48 mois
+                                    </div>
+                                    <div style={{display: 'flex', justifyContent: 'space-between', fontSize: '20px', fontWeight: 'bold'}}>
+                                        <span>Location mensuelle:</span>
+                                        <span style={{color: '#60a5fa'}}>{locationMensuelle.toFixed(2)} € /mois</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <button onClick={handleSave} className="btn btn-success" style={{width: '100%', marginTop: '20px'}}>
+                                💾 Enregistrer le devis
+                            </button>
+                        </div>
+                    )}
+                </div>
+            );
+        }
+
+        // Main App
+        function App() {
+            const [user, setUser] = useState(null);
+            const [page, setPage] = useState('dashboard');
+            const [quotes, setQuotes] = useState([]);
+
+            useEffect(() => {
+                init();
+                const stored = localStorage.getItem('foloneo_current_user');
+                if (stored) setUser(JSON.parse(stored));
+                setQuotes(JSON.parse(localStorage.getItem('foloneo_quotes') || '[]'));
+            }, []);
+
+            const saveQuote = (quote) => {
+                const all = JSON.parse(localStorage.getItem('foloneo_quotes') || '[]');
+                all.push(quote);
+                localStorage.setItem('foloneo_quotes', JSON.stringify(all));
+                setQuotes(all);
+                setPage('dashboard');
+            };
+
+            const deleteQuote = (quoteId) => {
+                const all = JSON.parse(localStorage.getItem('foloneo_quotes') || '[]');
+                const updated = all.filter(q => q.id !== quoteId);
+                localStorage.setItem('foloneo_quotes', JSON.stringify(updated));
+                setQuotes(updated);
+            };
+
+            const logout = () => {
+                localStorage.removeItem('foloneo_current_user');
+                setUser(null);
+            };
+
+            if (!user) return <LoginScreen onLogin={setUser} />;
+
+            return (
+                <div>
+                    <div className="header">
+                        <div className="logo" onClick={() => setPage('dashboard')}>
+                            <div className="logo-icon">F</div>
+                            <div>
+                                <div style={{fontWeight: 'bold', fontSize: '18px'}}>Foloneo Pro</div>
+                                <div style={{fontSize: '12px', color: 'rgba(255,255,255,0.6)'}}>Générateur de Devis</div>
+                            </div>
+                        </div>
+                        <button onClick={logout} className="btn btn-primary">🚪 Déconnexion</button>
+                    </div>
+                    <div className="container content">
+                        {page === 'dashboard' && <Dashboard quotes={quotes} onDeleteQuote={deleteQuote} />}
+                        {page === 'quotes' && <QuoteCreator onSave={saveQuote} onBack={() => setPage('dashboard')} user={user} />}
+                        {page === 'products' && user.role === 'admin' && <ProductManager onBack={() => setPage('dashboard')} />}
+                    </div>
+                    <div className="mobile-nav">
+                        <button className={`mobile-nav-btn ${page === 'dashboard' ? 'active' : ''}`} onClick={() => setPage('dashboard')}>
+                            <span style={{fontSize: '24px'}}>📊</span>
+                            <span style={{fontSize: '11px'}}>Dashboard</span>
+                        </button>
+                        <button className={`mobile-nav-btn ${page === 'quotes' ? 'active' : ''}`} onClick={() => setPage('quotes')}>
+                            <span style={{fontSize: '24px'}}>📝</span>
+                            <span style={{fontSize: '11px'}}>Devis</span>
+                        </button>
+                        {user.role === 'admin' && (
+                            <button className={`mobile-nav-btn ${page === 'products' ? 'active' : ''}`} onClick={() => setPage('products')}>
+                                <span style={{fontSize: '24px'}}>🛒</span>
+                                <span style={{fontSize: '11px'}}>Produits</span>
+                            </button>
+                        )}
+                    </div>
+                </div>
+            );
+        }
+
+        ReactDOM.render(<App />, document.getElementById('root'));
+    </script>
+</body>
+</html>
