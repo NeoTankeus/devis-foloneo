@@ -373,8 +373,6 @@
             { id: 'dahua2', name: 'NVR 8 canaux', price: 449, category: 'Enregistreurs', supplier: 'Dahua' },
             { id: 'dahua3', name: 'Caméra Dôme 4MP', price: 159, category: 'Caméras', supplier: 'Dahua' },
             { id: 'dahua4', name: 'Caméra Tube 4MP', price: 179, category: 'Caméras', supplier: 'Dahua' },
-            { id: 'service1', name: 'Journée d\'installation', price: 500, category: 'Services', supplier: 'Foloneo' },
-            { id: 'service2', name: 'Accessoires', price: 200, category: 'Services', supplier: 'Foloneo' },
         ];
 
         // Init
@@ -519,6 +517,31 @@
                     doc.text(`${(item.price * item.quantity).toFixed(2)} €`, 170, y);
                     y += 8;
                 });
+
+                // Installation et Accessoires
+                if (quote.installationDays > 0) {
+                    if (y > 270) {
+                        doc.addPage();
+                        y = 20;
+                    }
+                    doc.text('Journée d\'installation', 20, y);
+                    doc.text('500.00 €', 110, y);
+                    doc.text(quote.installationDays.toString(), 145, y);
+                    doc.text(`${quote.installationAmount.toFixed(2)} €`, 170, y);
+                    y += 8;
+                }
+
+                if (quote.accessoiresQty > 0) {
+                    if (y > 270) {
+                        doc.addPage();
+                        y = 20;
+                    }
+                    doc.text('Accessoires', 20, y);
+                    doc.text('200.00 €', 110, y);
+                    doc.text(quote.accessoiresQty.toString(), 145, y);
+                    doc.text(`${quote.accessoiresAmount.toFixed(2)} €`, 170, y);
+                    y += 8;
+                }
 
                 // Ligne de séparation avant totaux
                 y += 4;
@@ -850,43 +873,22 @@
             const [cart, setCart] = useState([]);
             const [discount, setDiscount] = useState(0);
             const [coefficient, setCoefficient] = useState(1);
+            const [installationDays, setInstallationDays] = useState(0);
+            const [accessoiresQty, setAccessoiresQty] = useState(0);
             const [search, setSearch] = useState('');
             const [toast, setToast] = useState('');
             const [allProducts, setAllProducts] = useState([]);
 
             useEffect(() => {
                 const products = loadAllProducts();
-                // Ajouter les produits de service s'ils n'existent pas déjà
-                const hasInstallation = products.some(p => p.id === 'service1');
-                const hasAccessoires = products.some(p => p.id === 'service2');
-
-                let updatedProducts = [...products];
-                if (!hasInstallation) {
-                    updatedProducts.push({ id: 'service1', name: 'Journée d\'installation', price: 500, category: 'Services', supplier: 'Foloneo' });
-                }
-                if (!hasAccessoires) {
-                    updatedProducts.push({ id: 'service2', name: 'Accessoires', price: 200, category: 'Services', supplier: 'Foloneo' });
-                }
-
-                if (!hasInstallation || !hasAccessoires) {
-                    saveAllProducts(updatedProducts);
-                }
-
-                setAllProducts(updatedProducts);
+                setAllProducts(products);
             }, []);
 
-            const filtered = allProducts
-                .filter(p =>
-                    p.name.toLowerCase().includes(search.toLowerCase()) ||
-                    p.category.toLowerCase().includes(search.toLowerCase()) ||
-                    (p.supplier && p.supplier.toLowerCase().includes(search.toLowerCase()))
-                )
-                .sort((a, b) => {
-                    // Mettre les Services à la fin
-                    if (a.category === 'Services' && b.category !== 'Services') return 1;
-                    if (a.category !== 'Services' && b.category === 'Services') return -1;
-                    return 0;
-                });
+            const filtered = allProducts.filter(p =>
+                p.name.toLowerCase().includes(search.toLowerCase()) ||
+                p.category.toLowerCase().includes(search.toLowerCase()) ||
+                (p.supplier && p.supplier.toLowerCase().includes(search.toLowerCase()))
+            );
 
             const addToCart = (product) => {
                 const existing = cart.find(item => item.id === product.id);
@@ -908,19 +910,29 @@
             };
 
             const subtotal = cart.reduce((s, item) => s + (item.price * item.quantity), 0);
-            const discountAmount = subtotal * (discount / 100);
-            const totalAfterDiscount = subtotal - discountAmount;
+            const installationAmount = installationDays * 500;
+            const accessoiresAmount = accessoiresQty * 200;
+            const subtotalWithServices = subtotal + installationAmount + accessoiresAmount;
+            const discountAmount = subtotalWithServices * (discount / 100);
+            const totalAfterDiscount = subtotalWithServices - discountAmount;
             const total = totalAfterDiscount * coefficient;
 
             const handleSave = () => {
                 if (!clientName) { alert('Entrez le nom du client'); return; }
-                if (cart.length === 0) { alert('Ajoutez des produits'); return; }
+                if (cart.length === 0 && installationDays === 0 && accessoiresQty === 0) {
+                    alert('Ajoutez des produits ou des services');
+                    return;
+                }
                 const quote = {
                     id: Date.now().toString(),
                     date: new Date().toISOString(),
                     clientName,
                     items: cart,
-                    subtotal,
+                    installationDays,
+                    installationAmount,
+                    accessoiresQty,
+                    accessoiresAmount,
+                    subtotal: subtotalWithServices,
                     discount,
                     discountAmount,
                     coefficient,
@@ -1041,6 +1053,24 @@
                                 </div>
                             ))}
                             <div style={{marginTop: '20px', paddingTop: '20px', borderTop: '1px solid rgba(255,255,255,0.1)'}}>
+                                <div style={{marginBottom: '16px', paddingBottom: '16px', borderBottom: '1px solid rgba(255,255,255,0.05)'}}>
+                                    <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px'}}>
+                                        <label style={{fontSize: '14px', fontWeight: '600'}}>Journée d'installation (500€/jour)</label>
+                                        <div className="quantity-controls">
+                                            <button className="quantity-btn" onClick={() => setInstallationDays(Math.max(0, installationDays - 1))}>-</button>
+                                            <span style={{fontWeight: 'bold', width: '40px', textAlign: 'center', fontSize: '16px'}}>{installationDays}</span>
+                                            <button className="quantity-btn" onClick={() => setInstallationDays(installationDays + 1)}>+</button>
+                                        </div>
+                                    </div>
+                                    <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
+                                        <label style={{fontSize: '14px', fontWeight: '600'}}>Accessoires (200€)</label>
+                                        <div className="quantity-controls">
+                                            <button className="quantity-btn" onClick={() => setAccessoiresQty(Math.max(0, accessoiresQty - 1))}>-</button>
+                                            <span style={{fontWeight: 'bold', width: '40px', textAlign: 'center', fontSize: '16px'}}>{accessoiresQty}</span>
+                                            <button className="quantity-btn" onClick={() => setAccessoiresQty(accessoiresQty + 1)}>+</button>
+                                        </div>
+                                    </div>
+                                </div>
                                 <div style={{display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '12px', flexWrap: 'wrap'}}>
                                     <label style={{fontSize: '14px', minWidth: '80px'}}>Remise %</label>
                                     <input
@@ -1066,9 +1096,27 @@
                                     />
                                 </div>
                                 <div style={{display: 'flex', justifyContent: 'space-between', marginBottom: '8px'}}>
-                                    <span>Sous-total:</span>
+                                    <span>Sous-total produits:</span>
                                     <span style={{fontWeight: '600'}}>{subtotal.toFixed(2)} €</span>
                                 </div>
+                                {installationDays > 0 && (
+                                    <div style={{display: 'flex', justifyContent: 'space-between', marginBottom: '8px'}}>
+                                        <span>Installation ({installationDays} jour{installationDays > 1 ? 's' : ''}):</span>
+                                        <span style={{fontWeight: '600'}}>{installationAmount.toFixed(2)} €</span>
+                                    </div>
+                                )}
+                                {accessoiresQty > 0 && (
+                                    <div style={{display: 'flex', justifyContent: 'space-between', marginBottom: '8px'}}>
+                                        <span>Accessoires (×{accessoiresQty}):</span>
+                                        <span style={{fontWeight: '600'}}>{accessoiresAmount.toFixed(2)} €</span>
+                                    </div>
+                                )}
+                                {(installationDays > 0 || accessoiresQty > 0) && (
+                                    <div style={{display: 'flex', justifyContent: 'space-between', marginBottom: '8px', paddingTop: '8px', borderTop: '1px solid rgba(255,255,255,0.05)'}}>
+                                        <span style={{fontWeight: '600'}}>Sous-total avec services:</span>
+                                        <span style={{fontWeight: '600'}}>{subtotalWithServices.toFixed(2)} €</span>
+                                    </div>
+                                )}
                                 {discount > 0 && (
                                     <div style={{display: 'flex', justifyContent: 'space-between', marginBottom: '8px', color: '#ef4444'}}>
                                         <span>Remise ({discount}%):</span>
