@@ -471,13 +471,33 @@
                 </div>
                 <div class="card">
                     <h3>📦 Catalogue (${state.products.length})</h3>
-                    ${state.products.map(p => `
-                        <div class="product-item">
-                            <div style="font-weight: 600; margin-bottom: 4px; font-size: 16px;">${p.name}</div>
-                            <div style="font-size: 13px; color: rgba(255,255,255,0.5);">${p.category} ${p.supplier ? '• ' + p.supplier : ''}</div>
-                            <div style="font-size: 20px; font-weight: bold; color: #3b82f6; margin-top: 6px;">${p.price.toFixed(2)} €</div>
+                    <div style="padding: 12px; background: rgba(59, 130, 246, 0.15); border-radius: 12px; margin-bottom: 16px; border: 1px solid rgba(59, 130, 246, 0.3);">
+                        <div style="font-size: 14px; color: #60a5fa;">
+                            💡 <strong>Astuce:</strong> Faites glisser les produits pour réorganiser l'ordre d'apparition
                         </div>
-                    `).join('')}
+                    </div>
+                    <div id="products-list">
+                        ${state.products.map((p, index) => `
+                            <div class="product-item"
+                                 draggable="true"
+                                 data-product-id="${p.id}"
+                                 data-index="${index}"
+                                 style="cursor: move; transition: all 0.2s; border: 2px solid transparent;"
+                                 ondragstart="handleDragStart(event)"
+                                 ondragover="handleDragOver(event)"
+                                 ondrop="handleDrop(event)"
+                                 ondragend="handleDragEnd(event)">
+                                <div style="display: flex; align-items: center; gap: 12px;">
+                                    <div style="font-size: 24px; opacity: 0.5;">⋮⋮</div>
+                                    <div style="flex: 1;">
+                                        <div style="font-weight: 600; margin-bottom: 4px; font-size: 16px;">${p.name}</div>
+                                        <div style="font-size: 13px; color: rgba(255,255,255,0.5);">${p.category} ${p.supplier ? '• ' + p.supplier : ''}</div>
+                                        <div style="font-size: 20px; font-weight: bold; color: #3b82f6; margin-top: 6px;">${p.price.toFixed(2)} €</div>
+                                    </div>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
                 </div>
             `;
         }
@@ -692,6 +712,69 @@
             setTimeout(() => {
                 printWindow.print();
             }, 500);
+        }
+
+        // Gestion du Drag & Drop pour réorganiser les produits
+        let draggedElement = null;
+        let draggedIndex = null;
+
+        function handleDragStart(e) {
+            draggedElement = e.target.closest('.product-item');
+            draggedIndex = parseInt(draggedElement.dataset.index);
+            draggedElement.style.opacity = '0.5';
+            e.dataTransfer.effectAllowed = 'move';
+        }
+
+        function handleDragOver(e) {
+            e.preventDefault();
+            e.dataTransfer.dropEffect = 'move';
+            const targetElement = e.target.closest('.product-item');
+            if (targetElement && targetElement !== draggedElement) {
+                targetElement.style.borderColor = 'rgba(59, 130, 246, 0.5)';
+                targetElement.style.borderWidth = '2px';
+            }
+        }
+
+        function handleDrop(e) {
+            e.preventDefault();
+            const targetElement = e.target.closest('.product-item');
+
+            if (targetElement && targetElement !== draggedElement) {
+                const targetIndex = parseInt(targetElement.dataset.index);
+
+                // Réorganiser le tableau des produits
+                const newProducts = [...state.products];
+                const draggedProduct = newProducts[draggedIndex];
+
+                // Supprimer l'élément de sa position initiale
+                newProducts.splice(draggedIndex, 1);
+
+                // Insérer à la nouvelle position
+                newProducts.splice(targetIndex, 0, draggedProduct);
+
+                // Mettre à jour l'état et sauvegarder
+                state.products = newProducts;
+                localStorage.setItem('foloneo_products', JSON.stringify(state.products));
+
+                // Réafficher immédiatement
+                render();
+            }
+
+            return false;
+        }
+
+        function handleDragEnd(e) {
+            if (draggedElement) {
+                draggedElement.style.opacity = '1';
+            }
+
+            // Réinitialiser tous les styles de bordure
+            document.querySelectorAll('.product-item').forEach(item => {
+                item.style.borderColor = 'transparent';
+            });
+
+            draggedElement = null;
+            draggedIndex = null;
         }
 
         // Démarrage
